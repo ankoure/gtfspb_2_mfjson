@@ -43,7 +43,7 @@ class Entity:
         self.updated_at = [entity.vehicle.timestamp]
         self.current_stop_sequence = [entity.vehicle.current_stop_sequence]
         self.coordinates = [
-            [entity.vehicle.position.latitude, entity.vehicle.position.longitude]
+            [entity.vehicle.position.longitude,entity.vehicle.position.latitude]
         ] 
         self.occupancy_status = [entity.vehicle.occupancy_status] 
         self.occupancy_percentage = [entity.vehicle.occupancy_percentage] 
@@ -63,7 +63,7 @@ class Entity:
         self.current_status.append(entity.vehicle.current_status)
         self.current_stop_sequence.append(entity.vehicle.current_stop_sequence)
         self.coordinates.append(
-            [entity.vehicle.position.latitude, entity.vehicle.position.longitude]
+            [entity.vehicle.position.longitude,entity.vehicle.position.latitude]
         )
         self.occupancy_status.append(entity.vehicle.occupancy_status)
         self.occupancy_percentage.append(entity.vehicle.occupancy_percentage)
