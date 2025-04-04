@@ -63,7 +63,6 @@ def consume_pb(url,api_key, entities):
 if __name__ == "__main__":
     load_dotenv()
     api_key = os.getenv("API_KEY")
-    # sse_url = "https://api-v3.mbta.com/vehicles?filter[route]="  # Replace with your SSE endpoint
     pb_url = "https://cdn.mbta.com/realtime/VehiclePositions.pb" 
     entities = []
     running = True

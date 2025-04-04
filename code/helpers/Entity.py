@@ -40,6 +40,7 @@ class Entity:
         self.odometer = [entity.vehicle.position.odometer]
         self.speed = [entity.vehicle.position.speed]
         self.stop_id = [entity.vehicle.stop_id]
+        # TODO: need to convert to ISO 8601 format
         self.updated_at = [entity.vehicle.timestamp]
         self.current_stop_sequence = [entity.vehicle.current_stop_sequence]
         self.coordinates = [
@@ -69,6 +70,7 @@ class Entity:
         self.occupancy_percentage.append(entity.vehicle.occupancy_percentage)
         self.speed.append(entity.vehicle.position.speed)
         self.odometer.append(entity.vehicle.position.odometer)
+        # TODO: need to convert to ISO 8601 format
         self.updated_at.append(entity.vehicle.timestamp)
         self.stop_id.append(entity.vehicle.stop_id)
     
