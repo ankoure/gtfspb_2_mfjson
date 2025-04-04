@@ -1,6 +1,7 @@
 import uuid
 import json
 import datetime
+import os 
 
 def writetojson(entity,entities,mode):
     if mode == "JSON":
@@ -22,7 +23,7 @@ class Entity:
         self.direction_id = entity.vehicle.trip.direction_id
         self.label = entity.vehicle.vehicle.label
         # TODO: self.revenue = attributes.get("revenue", None)
-        self.created = datetime.now()
+        self.created = datetime.datetime.now()
         self.route_id = entity.vehicle.trip.route_id
         self.trip_id = entity.vehicle.trip.trip_id
         self.schedule_relationship = entity.vehicle.trip.schedule_relationship
@@ -73,7 +74,7 @@ class Entity:
     
     def checkage(self):
         #checks age of object and returns age in seconds
-        return (datetime.now() - self.created).total_seconds()
+        return (datetime.datetime.now() - self.created).total_seconds()
 
 
     def toJSON(self):
@@ -94,10 +95,10 @@ class Entity:
                             "interpolation": "Linear",
                         },
                         "properties":{
+                            "traj_id": 0,
                             "entity_id": self.entity_id,
                             "direction_id": self.direction_id,
                             "label": self.label,
-                            "revenue": self.revenue,
                             "trip_id": self.trip_id,
                             "route_id": self.route_id
 
@@ -143,3 +144,17 @@ class Entity:
             },
             indent=4,
         )
+    def save(self,file_path):
+        isExist = os.path.exists(f"{file_path}{self.route_id}")
+        if isExist == False:
+            os.makedirs(f"{file_path}{self.route_id}", mode=0o777, exist_ok=False)
+            with open(
+                    f"{file_path}{self.route_id}/{uuid.uuid4()}.mfjson", "w"
+                ) as f:
+                    f.write(self.toMFJSON())
+        else:
+            with open(
+                    f"{file_path}{self.route_id}/{uuid.uuid4()}.mfjson", "w"
+                ) as f:
+                    f.write(self.toMFJSON())
+        
