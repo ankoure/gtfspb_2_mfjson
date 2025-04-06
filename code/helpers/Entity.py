@@ -102,7 +102,14 @@ class Entity:
                             "direction_id": self.direction_id,
                             "label": self.label,
                             "trip_id": self.trip_id,
-                            "route_id": self.route_id
+                            "route_id": self.route_id,
+                            "schedule_relationship": self.schedule_relationship,
+                            "trip_start_date": self.start_date,
+                            "trip_start_time": self.start_time,
+                            "vehicle_id": self.vehicle_id,
+                            "vehicle_label": self.vehicle_label,
+                            "license_plate": self.license_plate
+
 
                         },
                         "temporalProperties": [
@@ -118,26 +125,42 @@ class Entity:
                                     "values": self.current_status,
                                     "interpolation": "Discrete",
                                 },
+                                  "odometer": {
+                                    "type": "Measure",
+                                    "values": self.odometer,
+                                    "interpolation": "Discrete",
+                                },
+                                 "speed": {
+                                    "type": "Measure",
+                                    "values": self.speed,
+                                    "interpolation": "Linear",
+                                },
+                                 "stop_id": {
+                                    "type": "Measure",
+                                    "values": self.stop_id,
+                                    "interpolation": "Discrete",
+                                },
                                 "current_stop_sequence": {
                                     "type": "Measure",
                                     "values": self.current_stop_sequence,
                                     "interpolation": "Discrete",
                                 },
-                                 "occupancy_status": {
+                                "occupancy_status": {
                                     "type": "Measure",
-                                    "values": self.current_stop_sequence,
+                                    "values": self.occupancy_status,
                                     "interpolation": "Discrete",
                                 },
-                                 "speed": {
+                                "occupancy_percentage": {
                                     "type": "Measure",
-                                    "values": self.current_stop_sequence,
-                                    "interpolation": "Linear",
-                                },
-                                 "stop_id": {
-                                    "type": "Measure",
-                                    "values": self.current_stop_sequence,
+                                    "values": self.occupancy_percentage,
                                     "interpolation": "Discrete",
                                 },
+                                "congestion_level": {
+                                    "type": "Measure",
+                                    "values": self.congestion_level,
+                                    "interpolation": "Discrete",
+                                },                              
+                                
                                 
                             }
                         ],
