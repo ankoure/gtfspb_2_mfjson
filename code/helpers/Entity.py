@@ -41,7 +41,7 @@ class Entity:
         self.speed = [entity.vehicle.position.speed]
         self.stop_id = [entity.vehicle.stop_id]
         # TODO: need to convert to ISO 8601 format
-        self.updated_at = [entity.vehicle.timestamp]
+        self.updated_at = [datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat()]
         self.current_stop_sequence = [entity.vehicle.current_stop_sequence]
         self.coordinates = [
             [entity.vehicle.position.longitude,entity.vehicle.position.latitude]
@@ -71,7 +71,7 @@ class Entity:
         self.speed.append(entity.vehicle.position.speed)
         self.odometer.append(entity.vehicle.position.odometer)
         # TODO: need to convert to ISO 8601 format
-        self.updated_at.append(entity.vehicle.timestamp)
+        self.updated_at.append(datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat())
         self.stop_id.append(entity.vehicle.stop_id)
     
     def checkage(self):
