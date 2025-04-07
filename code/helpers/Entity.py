@@ -48,7 +48,7 @@ class Entity:
         ] 
         self.occupancy_status = [entity.vehicle.occupancy_status] 
         self.occupancy_percentage = [entity.vehicle.occupancy_percentage] 
-        self.congestion_level =  entity.vehicle.congestion_level
+        self.congestion_level =  [entity.vehicle.congestion_level]
 
         #TODO: get multicarriage details
         # print(entity.vehicle.multi_carriage_details)
@@ -73,6 +73,7 @@ class Entity:
         # TODO: need to convert to ISO 8601 format
         self.updated_at.append(datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat())
         self.stop_id.append(entity.vehicle.stop_id)
+        self.congestion_level.append(entity.vehicle.congestion_level)
     
     def checkage(self):
         #checks age of object and returns age in seconds
