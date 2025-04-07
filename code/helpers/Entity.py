@@ -12,9 +12,21 @@ def writetojson(entity,entities,mode):
         with open(f"/home/andrew/gtfspb_2_mfjson/data/{uuid.uuid4()}.mfjson", "w") as f:
             f.write(entity.toJSON())
             entities.remove(entity)
-
-
             
+
+class Carriage:
+    def __init__(self, carriage_details):
+        self.label = carriage_details.label
+        self.carriage_sequence = carriage_details.carriage_sequence
+        self.occupancy_status = [carriage_details.occupancy_status]
+        
+    def Update(self,carriage_details):
+        self.occupancy_status.append(carriage_details.occupancy_status)
+        
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        
+
 class Entity:
     def __init__(self, entity):
         self.entity_id = entity.id
@@ -29,7 +41,6 @@ class Entity:
         self.schedule_relationship = entity.vehicle.trip.schedule_relationship
         self.start_date = entity.vehicle.trip.start_date
         self.start_time = entity.vehicle.trip.start_time
-
         self.vehicle_id = entity.vehicle.vehicle.id
         self.vehicle_label = entity.vehicle.vehicle.label
         self.license_plate = entity.vehicle.vehicle.license_plate
@@ -40,7 +51,6 @@ class Entity:
         self.odometer = [entity.vehicle.position.odometer]
         self.speed = [entity.vehicle.position.speed]
         self.stop_id = [entity.vehicle.stop_id]
-        # TODO: need to convert to ISO 8601 format
         self.updated_at = [datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat()]
         self.current_stop_sequence = [entity.vehicle.current_stop_sequence]
         self.coordinates = [
@@ -49,12 +59,16 @@ class Entity:
         self.occupancy_status = [entity.vehicle.occupancy_status] 
         self.occupancy_percentage = [entity.vehicle.occupancy_percentage] 
         self.congestion_level =  [entity.vehicle.congestion_level]
+        
+        self.carriages = [Carriage(c) for c in entity.vehicle.multi_carriage_details]
 
         #TODO: get multicarriage details
         # print(entity.vehicle.multi_carriage_details)
         # print(entity.vehicle.multi_carriage_details[0].label)
-        # print(entity.vehicle.multi_carriage_details[0].occupancy_status)
         # print(entity.vehicle.multi_carriage_details[0].carriage_sequence)
+        # first two = static, third = temporal
+        # print(entity.vehicle.multi_carriage_details[0].occupancy_status)
+
         
      
 
@@ -74,6 +88,12 @@ class Entity:
         self.updated_at.append(datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat())
         self.stop_id.append(entity.vehicle.stop_id)
         self.congestion_level.append(entity.vehicle.congestion_level)
+        
+        for carriage in entity.vehicle.multi_carriage_details:
+            carriage_obj = next((c for c in self.carriages if c.label == carriage.label), None)
+            if carriage_obj:
+                carriage_obj.Update(carriage)
+            
     
     def checkage(self):
         #checks age of object and returns age in seconds
@@ -84,9 +104,9 @@ class Entity:
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def toMFJSON(self):
+        # TODO: add carriage details
         #TODO: Need to update properties being written out
-        return json.dumps(
-            {
+        dict_template = {
                 "type": "FeatureCollection",
                 "features": [
                     {
@@ -98,7 +118,7 @@ class Entity:
                             "interpolation": "Linear",
                         },
                         "properties":{
-                            "traj_id": 0,
+                            "trajectory_id": 0,
                             "entity_id": self.entity_id,
                             "direction_id": self.direction_id,
                             "label": self.label,
@@ -110,8 +130,6 @@ class Entity:
                             "vehicle_id": self.vehicle_id,
                             "vehicle_label": self.vehicle_label,
                             "license_plate": self.license_plate
-
-
                         },
                         "temporalProperties": [
                             {
@@ -167,7 +185,17 @@ class Entity:
                         ],
                     }
                 ],
-            },
+            }
+        for carriage in self.carriages:
+            carriage_key = f"carriage_{carriage.carriage_sequence}_{carriage.label}"
+            dict_template["features"][0]["temporalProperties"][0][carriage_key] = {
+                "type": "Measure",
+                "values": carriage.occupancy_status,
+                "interpolation": "Discrete"
+            }
+            
+        return json.dumps(
+            dict_template,
             indent=4,
         )
     def save(self,file_path):
