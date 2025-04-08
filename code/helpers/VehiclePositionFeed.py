@@ -3,20 +3,45 @@ import requests
 from helpers.Entity import Entity
 
 class VehiclePositionFeed():
-    def __init__(self, url, api_key, agency, file_path):
+    def __init__(self, url, agency, file_path, headers=None, query_params=None,https_verify=True):
         self.entities = []
         self.url = url
-        self.api_key = api_key
+        self.headers = headers
+        self.query_params = query_params
         self.agency = agency
         self.file_path = file_path
+        self.https_verify = https_verify
     def find_entity(self,entity_id):
         return next((e for e in self.entities if e.entity_id == entity_id), None)
     
     def get_entities(self):
-        HEADERS = {"x-api-key": self.api_key}
         try:
             feed = gtfs_realtime_pb2.FeedMessage()
-            response = requests.get(self.url, headers=HEADERS)
+            # TODO: add From and User Agent Headers
+            # headers = {
+            #     'User-Agent': 'Your App Name/1.0',
+            #     'From': 'your_email@example.com'
+            # }
+
+            if self.headers:
+                if not self.query_params:
+                    #Headers Yes, query params No
+                    response = requests.get(self.url, headers=self.headers,verify=self.https_verify)
+                    
+                #Headers Yes, query params Yes
+                response = requests.get(self.url, headers=self.headers,params=self.query_params,verify=self.https_verify)
+                
+            if self.query_params:
+                if not self.headers:
+                    #Headers No, query params Yes
+                    response = requests.get(self.url, headers=self.headers,params=self.query_params,verify=self.https_verify)
+                    
+            if not self.query_params:
+                if not self.headers:
+                    #Headers No Query Params No
+                    response = requests.get(self.url,verify=self.https_verify)
+                    
+                
             feed.ParseFromString(response.content)
         except:
             pass
