@@ -4,6 +4,22 @@ import time
 from helpers.VehiclePositionFeed import VehiclePositionFeed
 from multiprocessing import Pool
 import json
+import logging
+
+def init_worker():
+         logging.basicConfig(
+              level=logging.error,
+              format='%(processName)s - %(levelname)s - %(message)s',
+              filename='app.log'
+              )
+         
+def worker(VehiclePositionFeed):
+     while True:
+            VehiclePositionFeed.consume_pb()
+            time.sleep(VehiclePositionFeed.timeout)
+
+
+
 
 
 if __name__ == "__main__":
@@ -31,13 +47,8 @@ if __name__ == "__main__":
     
     # test = [x,z]
     
-    def test_fun(VehiclePositionFeed):
-        while True:
-            VehiclePositionFeed.consume_pb()
-            time.sleep(VehiclePositionFeed.timeout)
-            
-    pool = Pool(processes=len(data))                     # Create a multiprocessing Pool
-    pool.map(test_fun, test)  # process data_inputs iterable with pool
+    pool = Pool(processes=len(data),initializer=init_worker)  # Create a multiprocessing Pool
+    pool.map(worker, test)  # process data_inputs iterable with pool
             
     
     # running = True

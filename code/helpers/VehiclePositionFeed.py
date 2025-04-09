@@ -1,6 +1,7 @@
 from google.transit import gtfs_realtime_pb2
 import requests
 from helpers.Entity import Entity
+import logging 
 
 class VehiclePositionFeed():
     def __init__(self, url, agency, file_path, headers=None, query_params=None,https_verify=True,timeout=30):
@@ -50,6 +51,7 @@ class VehiclePositionFeed():
         except:
             # TODO: update to be more fine-grained in future
             self.updatetimeout(300)
+            logging.exception("message")
         # Returns list of feed entities
         vehicles = [entity for entity in feed.entity if entity.HasField('vehicle')]
         return vehicles
