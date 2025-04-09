@@ -10,10 +10,10 @@ if __name__ == "__main__":
     api_key = os.getenv("API_KEY")
     
     x = VehiclePositionFeed('https://cdn.mbta.com/realtime/VehiclePositions.pb','MBTA','/home/andrew/gtfspb_2_mfjson/data/MBTA/')
-    y = VehiclePositionFeed('https://passio3.com/billings/passioTransit/gtfs/realtime/vehiclePositions','Billings','/home/andrew/gtfspb_2_mfjson/data/Billings/')
-    z = VehiclePositionFeed('http://gtfs.gcrta.org/TMGTFSRealTimeWebService/Vehicle/VehiclePositions.pb','Cleveland','/home/andrew/gtfspb_2_mfjson/data/Cleveland/')
+    # y = VehiclePositionFeed('https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace','NYC','/home/andrew/gtfspb_2_mfjson/data/NYC/')
+    z = VehiclePositionFeed('https://cats.rideralerts.com/InfoPoint/gtfs-realtime.ashx?type=vehicleposition','Baton Rouge','/home/andrew/gtfspb_2_mfjson/data/Baton_Rouge/')
     
-    test = [x,y,z]
+    test = [x,z]
     
     def test_fun(VehiclePositionFeed):
         while True:

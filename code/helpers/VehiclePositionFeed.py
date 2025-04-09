@@ -46,7 +46,8 @@ class VehiclePositionFeed():
         except:
             pass
         # Returns list of feed entities
-        return feed.entity
+        vehicles = [entity for entity in feed.entity if entity.HasField('vehicle')]
+        return vehicles
     def consume_pb(self):
         
         feed_entities = self.get_entities()
