@@ -3,7 +3,7 @@ import requests
 from helpers.Entity import Entity
 
 class VehiclePositionFeed():
-    def __init__(self, url, agency, file_path, headers=None, query_params=None,https_verify=True):
+    def __init__(self, url, agency, file_path, headers=None, query_params=None,https_verify=True,timeout=30):
         self.entities = []
         self.url = url
         self.headers = headers
@@ -11,9 +11,13 @@ class VehiclePositionFeed():
         self.agency = agency
         self.file_path = file_path
         self.https_verify = https_verify
+        self.timeout = timeout
     def find_entity(self,entity_id):
         return next((e for e in self.entities if e.entity_id == entity_id), None)
     
+    def updatetimeout(self,timeout):
+        self.timeout = timeout
+        
     def get_entities(self):
         try:
             feed = gtfs_realtime_pb2.FeedMessage()
@@ -44,7 +48,8 @@ class VehiclePositionFeed():
                 
             feed.ParseFromString(response.content)
         except:
-            pass
+            # TODO: update to be more fine-grained in future
+            self.updatetimeout(300)
         # Returns list of feed entities
         vehicles = [entity for entity in feed.entity if entity.HasField('vehicle')]
         return vehicles
