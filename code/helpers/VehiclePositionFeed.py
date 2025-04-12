@@ -1,7 +1,10 @@
 from google.transit import gtfs_realtime_pb2
+from google.protobuf.message import DecodeError
 import requests
 from helpers.Entity import Entity
-import logging 
+import logging
+import datetime
+
 
 class VehiclePositionFeed():
     def __init__(self, url, agency, file_path, headers=None, query_params=None,https_verify=True,timeout=30):
@@ -46,18 +49,39 @@ class VehiclePositionFeed():
                     #Headers No Query Params No
                     response = requests.get(self.url,verify=self.https_verify)
                     
-                
             feed.ParseFromString(response.content)
+        except DecodeError as e:
+            logging.warning(f"protobuf decode error for {self.url}, {e}")
+        except requests.exceptions.Timeout:
+            logging.warning(f"Timeout for {self.url}")
+            # Maybe set up for a retry, or continue in a retry loop
+        except requests.exceptions.TooManyRedirects:
+            logging.warning(f"Too Many Redirects for {self.url}")
+        except requests.exceptions.SSLError:
+            logging.warning(f"SSL Error for {self.url}")
+        except requests.exceptions.RequestException as e:
+            # catastrophic error. bail.
+            raise SystemExit(e)
+        
         except:
             # TODO: update to be more fine-grained in future
             self.updatetimeout(300)
             logging.exception("message")
         # Returns list of feed entities
-        vehicles = [entity for entity in feed.entity if entity.HasField('vehicle')]
+        try:
+            vehicles = [e for e in feed.entity if e.HasField('vehicle')]
+        except:
+            logging.info(f'message does not have vehicle field {e}')
+            
         return vehicles
     def consume_pb(self):
         
         feed_entities = self.get_entities()
+        if len(feed_entities) == 0:
+            logging.warning(f"Empty Protobuf file for {self.url}")
+            self.updatetimeout(300)
+            #exit out of function
+            return
         
         if len(self.entities) == 0:
             # check if any observations exist, if none create all new objects
@@ -71,18 +95,19 @@ class VehiclePositionFeed():
                 entity = self.find_entity(feed_entity.id)
                 if entity:
                     # check if new direction and old direction are same
-                    if entity.direction_id == feed_entity.vehicle.trip.direction_id:
-                        entity.update(feed_entity)
-                        current_ids.append(feed_entity.id)
-                    else:
-                        # first remove old
-                        if len(entity.updated_at) > 1:
-                            entity.save(self.file_path)
-                        self.entities.remove(entity)
-                        # now create new
-                        entity = Entity(feed_entity)
-                        self.entities.append(entity)
-                        current_ids.append(feed_entity.id)
+                    if entity.updated_at != datetime.datetime.fromtimestamp(feed_entity.vehicle.timestamp).isoformat():
+                        if entity.direction_id == feed_entity.vehicle.trip.direction_id:
+                            entity.update(feed_entity)
+                            current_ids.append(feed_entity.id)
+                        else:
+                            # first remove old
+                            if len(entity.updated_at) > 1:
+                                entity.save(self.file_path)
+                            self.entities.remove(entity)
+                            # now create new
+                            entity = Entity(feed_entity)
+                            self.entities.append(entity)
+                            current_ids.append(feed_entity.id)
             # remove and save finished entities
             old_ids = [e.entity_id for e in self.entities]
             ids_to_remove = [x for x in old_ids if x not in current_ids]

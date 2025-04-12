@@ -8,9 +8,10 @@ import logging
 
 def init_worker():
          logging.basicConfig(
-              level=logging.error,
-              format='%(processName)s - %(levelname)s - %(message)s',
-              filename='app.log'
+              level=logging.DEBUG,
+              format='%(processName)s - %(levelname)s - %(message)s %(asctime)s',
+              filename='app.log',
+              datefmt='%Y-%m-%d %H:%M:%S'
               )
          
 def worker(VehiclePositionFeed):
