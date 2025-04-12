@@ -9,8 +9,8 @@ import logging
 def init_worker():
          logging.basicConfig(
               level=logging.DEBUG,
-              format='%(processName)s - %(levelname)s - %(message)s %(asctime)s',
-              filename='app.log',
+              format='%(processName)s - %(levelname)s - %(message)s - %(asctime)s',
+              filename=f'/home/andrew/gtfspb_2_mfjson/code/logs/app.log',
               datefmt='%Y-%m-%d %H:%M:%S'
               )
          
