@@ -58,9 +58,11 @@ class VehiclePositionFeed():
             logging.info(f'message does not have vehicle field {e}')
             
         return vehicles
+    
     def consume_pb(self):
-        
+
         feed_entities = self.get_entities()
+
         if len(feed_entities) == 0:
             logging.warning(f"Empty Protobuf file for {self.url}")
             self.updatetimeout(300)
@@ -79,12 +81,14 @@ class VehiclePositionFeed():
                 entity = self.find_entity(feed_entity.id)
                 if entity:
                     # check if new direction and old direction are same
-                    if entity.updated_at != datetime.datetime.fromtimestamp(feed_entity.vehicle.timestamp).isoformat():
+                    #check if last updated date is equivalent to new date, to prevent duplication
+                    if entity.updated_at[-1] != datetime.datetime.fromtimestamp(feed_entity.vehicle.timestamp).isoformat():
                         if entity.direction_id == feed_entity.vehicle.trip.direction_id:
                             entity.update(feed_entity)
                             current_ids.append(feed_entity.id)
                         else:
                             # first remove old
+                            # this checks to make sure there are at least 2 measurements
                             if len(entity.updated_at) > 1:
                                 entity.save(self.file_path)
                             self.entities.remove(entity)
@@ -92,6 +96,8 @@ class VehiclePositionFeed():
                             entity = Entity(feed_entity)
                             self.entities.append(entity)
                             current_ids.append(feed_entity.id)
+                    else:
+                        current_ids.append(feed_entity.id)
             # remove and save finished entities
             old_ids = [e.entity_id for e in self.entities]
             ids_to_remove = [x for x in old_ids if x not in current_ids]
