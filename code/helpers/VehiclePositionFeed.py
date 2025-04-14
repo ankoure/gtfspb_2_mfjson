@@ -31,24 +31,8 @@ class VehiclePositionFeed():
             #     'From': 'your_email@example.com'
             # }
 
-            if self.headers:
-                if not self.query_params:
-                    #Headers Yes, query params No
-                    response = requests.get(self.url, headers=self.headers,verify=self.https_verify)
-                    
-                #Headers Yes, query params Yes
-                response = requests.get(self.url, headers=self.headers,params=self.query_params,verify=self.https_verify)
-                
-            if self.query_params:
-                if not self.headers:
-                    #Headers No, query params Yes
-                    response = requests.get(self.url, headers=self.headers,params=self.query_params,verify=self.https_verify)
-                    
-            if not self.query_params:
-                if not self.headers:
-                    #Headers No Query Params No
-                    response = requests.get(self.url,verify=self.https_verify)
-                    
+            response = requests.get(self.url, headers=self.headers,params=self.query_params,verify=self.https_verify)
+
             feed.ParseFromString(response.content)
         except DecodeError as e:
             logging.warning(f"protobuf decode error for {self.url}, {e}")

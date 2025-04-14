@@ -1,0 +1,120 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "temporalGeometry": {
+                "type": "MovingPoint",
+                "coordinates": [
+                    [
+                        -71.08151245117188,
+                        42.33222961425781
+                    ],
+                    [
+                        -71.08404541015625,
+                        42.330265045166016
+                    ]
+                ],
+                "datetimes": [
+                    "2025-04-12T04:53:22",
+                    "2025-04-12T04:53:52"
+                ],
+                "interpolation": "Linear"
+            },
+            "properties": {
+                "trajectory_id": 0,
+                "entity_id": "y1857",
+                "direction_id": 1,
+                "label": "1857",
+                "trip_id": "68166562",
+                "route_id": "1",
+                "schedule_relationship": 0,
+                "trip_start_date": "20250411",
+                "trip_start_time": "24:07:00",
+                "vehicle_id": "y1857",
+                "vehicle_label": "1857",
+                "license_plate": ""
+            },
+            "temporalProperties": [
+                {
+                    "datetimes": [
+                        "2025-04-12T04:53:22",
+                        "2025-04-12T04:53:52"
+                    ],
+                    "bearing": {
+                        "type": "Measure",
+                        "values": [
+                            210.0,
+                            235.0
+                        ],
+                        "interpolation": "Linear"
+                    },
+                    "current_status": {
+                        "type": "Measure",
+                        "values": [
+                            2,
+                            2
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "odometer": {
+                        "type": "Measure",
+                        "values": [
+                            0.0,
+                            0.0
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "speed": {
+                        "type": "Measure",
+                        "values": [
+                            0.0,
+                            0.0
+                        ],
+                        "interpolation": "Linear"
+                    },
+                    "stop_id": {
+                        "type": "Measure",
+                        "values": [
+                            "62",
+                            "64"
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "current_stop_sequence": {
+                        "type": "Measure",
+                        "values": [
+                            22,
+                            24
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "occupancy_status": {
+                        "type": "Measure",
+                        "values": [
+                            1,
+                            1
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "occupancy_percentage": {
+                        "type": "Measure",
+                        "values": [
+                            0,
+                            0
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "congestion_level": {
+                        "type": "Measure",
+                        "values": [
+                            0,
+                            0
+                        ],
+                        "interpolation": "Discrete"
+                    }
+                }
+            ]
+        }
+    ]
+}

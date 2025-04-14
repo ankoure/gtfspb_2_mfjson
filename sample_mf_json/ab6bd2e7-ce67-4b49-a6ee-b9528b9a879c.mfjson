@@ -1,0 +1,135 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "temporalGeometry": {
+                "type": "MovingPoint",
+                "coordinates": [
+                    [
+                        -71.0897445678711,
+                        42.334346771240234
+                    ],
+                    [
+                        -71.08975982666016,
+                        42.33433151245117
+                    ],
+                    [
+                        -71.08956146240234,
+                        42.33445358276367
+                    ]
+                ],
+                "datetimes": [
+                    "2025-04-12T04:44:50",
+                    "2025-04-12T04:45:07",
+                    "2025-04-12T04:45:55"
+                ],
+                "interpolation": "Linear"
+            },
+            "properties": {
+                "trajectory_id": 0,
+                "entity_id": "y1858",
+                "direction_id": 1,
+                "label": "1858",
+                "trip_id": "68165650",
+                "route_id": "22",
+                "schedule_relationship": 0,
+                "trip_start_date": "20250411",
+                "trip_start_time": "24:13:00",
+                "vehicle_id": "y1858",
+                "vehicle_label": "1858",
+                "license_plate": ""
+            },
+            "temporalProperties": [
+                {
+                    "datetimes": [
+                        "2025-04-12T04:44:50",
+                        "2025-04-12T04:45:07",
+                        "2025-04-12T04:45:55"
+                    ],
+                    "bearing": {
+                        "type": "Measure",
+                        "values": [
+                            45.0,
+                            45.0,
+                            54.0
+                        ],
+                        "interpolation": "Linear"
+                    },
+                    "current_status": {
+                        "type": "Measure",
+                        "values": [
+                            2,
+                            2,
+                            2
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "odometer": {
+                        "type": "Measure",
+                        "values": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "speed": {
+                        "type": "Measure",
+                        "values": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "interpolation": "Linear"
+                    },
+                    "stop_id": {
+                        "type": "Measure",
+                        "values": [
+                            "17861",
+                            "17861",
+                            "17861"
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "current_stop_sequence": {
+                        "type": "Measure",
+                        "values": [
+                            29,
+                            29,
+                            29
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "occupancy_status": {
+                        "type": "Measure",
+                        "values": [
+                            1,
+                            1,
+                            1
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "occupancy_percentage": {
+                        "type": "Measure",
+                        "values": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "interpolation": "Discrete"
+                    },
+                    "congestion_level": {
+                        "type": "Measure",
+                        "values": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "interpolation": "Discrete"
+                    }
+                }
+            ]
+        }
+    ]
+}
