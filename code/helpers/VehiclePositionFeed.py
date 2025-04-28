@@ -16,10 +16,11 @@ class VehiclePositionFeed():
         self.file_path = file_path
         self.https_verify = https_verify
         self.timeout = timeout
-    def find_entity(self,entity_id):
+
+    def find_entity(self, entity_id):
         return next((e for e in self.entities if e.entity_id == entity_id), None)
     
-    def updatetimeout(self,timeout):
+    def updatetimeout(self, timeout):
         self.timeout = timeout
         
     def get_entities(self):
