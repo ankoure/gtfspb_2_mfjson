@@ -12,14 +12,16 @@ class Carriage:
         self.carriage_sequence = carriage_details.carriage_sequence
         self.occupancy_status = [carriage_details.occupancy_status]
 
-    def Update(self, carriage_details):
+    def update(self, carriage_details):
         self.occupancy_status.append(carriage_details.occupancy_status)
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 
 class Entity:
+    @staticmethod
+    def _timestamp_to_iso(timestamp):
+        """Convert Unix timestamp to ISO 8601 format string."""
+        return datetime.datetime.fromtimestamp(timestamp).isoformat()
+
     def __init__(self, entity):
         self.entity_id = entity.id
 
@@ -43,9 +45,7 @@ class Entity:
         self.odometer = [entity.vehicle.position.odometer]
         self.speed = [entity.vehicle.position.speed]
         self.stop_id = [entity.vehicle.stop_id]
-        self.updated_at = [
-            datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat()
-        ]
+        self.updated_at = [self._timestamp_to_iso(entity.vehicle.timestamp)]
         self.current_stop_sequence = [entity.vehicle.current_stop_sequence]
         self.coordinates = [
             [entity.vehicle.position.longitude, entity.vehicle.position.latitude]
@@ -55,13 +55,6 @@ class Entity:
         self.congestion_level = [entity.vehicle.congestion_level]
 
         self.carriages = [Carriage(c) for c in entity.vehicle.multi_carriage_details]
-
-        # TODO: get multicarriage details
-        # print(entity.vehicle.multi_carriage_details)
-        # print(entity.vehicle.multi_carriage_details[0].label)
-        # print(entity.vehicle.multi_carriage_details[0].carriage_sequence)
-        # first two = static, third = temporal
-        # print(entity.vehicle.multi_carriage_details[0].occupancy_status)
 
     def update(self, entity):
         # Temporal
@@ -75,10 +68,7 @@ class Entity:
         self.occupancy_percentage.append(entity.vehicle.occupancy_percentage)
         self.speed.append(entity.vehicle.position.speed)
         self.odometer.append(entity.vehicle.position.odometer)
-        # TODO: need to convert to ISO 8601 format
-        self.updated_at.append(
-            datetime.datetime.fromtimestamp(entity.vehicle.timestamp).isoformat()
-        )
+        self.updated_at.append(self._timestamp_to_iso(entity.vehicle.timestamp))
         self.stop_id.append(entity.vehicle.stop_id)
         self.congestion_level.append(entity.vehicle.congestion_level)
 
@@ -87,14 +77,7 @@ class Entity:
                 (c for c in self.carriages if c.label == carriage.label), None
             )
             if carriage_obj:
-                carriage_obj.Update(carriage)
-
-    def checkage(self):
-        # checks age of object and returns age in seconds
-        return (datetime.datetime.now() - self.created).total_seconds()
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+                carriage_obj.update(carriage)
 
     def toMFJSON(self):
         # TODO: add carriage details
@@ -191,15 +174,28 @@ class Entity:
         )
 
     def save(self, file_path):
-        isExist = os.path.exists(f"{file_path}/{self.route_id}")
-        if isExist is False:
-            os.makedirs(f"{file_path}/{self.route_id}", mode=0o777, exist_ok=False)
-            with open(f"{file_path}/{self.route_id}/{uuid.uuid4()}.mfjson", "w") as f:
+        # Extract date from first timestamp in updated_at
+        date = datetime.datetime.fromisoformat(self.updated_at[0]).date()
+        year = date.year
+        month = date.month
+        day = date.day
+
+        # Create path with date-based subdirectories: Year=YYYY/Month=MM/Day=DD
+        route_dir = (
+            f"{file_path}/{self.route_id}/Year={year}/Month={month:02d}/Day={day:02d}"
+        )
+        try:
+            os.makedirs(route_dir, mode=0o755, exist_ok=True)
+            file_name = f"{route_dir}/{uuid.uuid4()}.mfjson"
+            with open(file_name, "w") as f:
                 f.write(self.toMFJSON())
-        else:
-            with open(f"{file_path}/{self.route_id}/{uuid.uuid4()}.mfjson", "w") as f:
-                f.write(self.toMFJSON())
+        except OSError as e:
+            logger.error(f"Failed to save entity {self.entity_id} to {file_path}: {e}")
 
     def savetos3(self, bucket, file_path):
-        logger.info(type(bucket))
-        upload_file(self.toMFJSON(), bucket, f"{file_path}/{uuid.uuid4()}.mfjson")
+        s3_path = f"{file_path}/{uuid.uuid4()}.mfjson"
+        success = upload_file(self.toMFJSON(), bucket, s3_path)
+        if not success:
+            logger.error(
+                f"Failed to upload entity {self.entity_id} to S3 bucket {bucket}"
+            )

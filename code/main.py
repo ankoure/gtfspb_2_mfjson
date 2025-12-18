@@ -1,18 +1,23 @@
-import os
-from dotenv import load_dotenv
 import time
+from helpers.config import Config
 from helpers.VehiclePositionFeed import VehiclePositionFeed
 from helpers.setup_logger import logger
 
 if __name__ == "__main__":
-    load_dotenv()
-    api_key = os.getenv("API_KEY")
-    provider = os.getenv("PROVIDER")
-    feed_url = os.getenv("FEED_URL")
-    s3_bucket = os.getenv("S3_BUCKET")
-    logger.info(type(s3_bucket))
+    try:
+        config = Config()
+    except ValueError as e:
+        logger.error(str(e))
+        raise SystemExit(1)
+
     x = VehiclePositionFeed(
-        feed_url, provider, f"./data/{provider}", s3_bucket=s3_bucket, timeout=30
+        config.feed_url,
+        config.provider,
+        f"./data/{config.provider}",
+        s3_bucket=config.s3_bucket,
+        headers=config.get_headers(),
+        query_params=config.get_query_params(),
+        timeout=30,
     )
     running = True
     while running:

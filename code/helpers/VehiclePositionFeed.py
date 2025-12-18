@@ -5,24 +5,29 @@ from helpers.Entity import Entity
 from helpers.setup_logger import logger
 import datetime
 
+# Constants
+DEFAULT_TIMEOUT = 30
+ERROR_TIMEOUT = 300
+REQUEST_TIMEOUT = 10
+MAX_ENTITIES = 1000  # Memory safety limit
+
 
 class VehiclePositionFeed:
     def __init__(
         self,
         url,
-        agency,
+        provider,
         file_path,
         s3_bucket,
         headers=None,
         query_params=None,
         https_verify=True,
-        timeout=30,
+        timeout=DEFAULT_TIMEOUT,
     ):
         self.entities = []
         self.url = url
         self.headers = headers
         self.query_params = query_params
-        self.agency = agency
         self.file_path = file_path
         self.s3_bucket = s3_bucket
         self.https_verify = https_verify
@@ -31,23 +36,38 @@ class VehiclePositionFeed:
     def find_entity(self, entity_id):
         return next((e for e in self.entities if e.entity_id == entity_id), None)
 
-    def updatetimeout(self, timeout):
+    def update_timeout(self, timeout):
         self.timeout = timeout
 
+    def _check_memory_limit(self):
+        """Remove oldest entities if memory limit exceeded."""
+        if len(self.entities) > MAX_ENTITIES:
+            # Sort by creation time and remove oldest
+            oldest = min(self.entities, key=lambda e: e.created)
+            if len(oldest.updated_at) > 1:
+                oldest.save(self.file_path)
+            self.entities.remove(oldest)
+            logger.warning(
+                f"Entity memory limit exceeded. Removed {oldest.entity_id}. "
+                f"Current entities: {len(self.entities)}"
+            )
+
     def get_entities(self):
+        feed = gtfs_realtime_pb2.FeedMessage()
+        vehicles = []
+
         try:
-            feed = gtfs_realtime_pb2.FeedMessage()
-            # TODO: add From and User Agent Headers
-            # headers = {
-            #     'User-Agent': 'Your App Name/1.0',
-            #     'From': 'your_email@example.com'
-            # }
+            # Build headers with User-Agent
+            headers = self.headers or {}
+            if "User-Agent" not in headers:
+                headers["User-Agent"] = "gtfspb-2-mfjson/1.0"
 
             response = requests.get(
                 self.url,
-                headers=self.headers,
+                headers=headers,
                 params=self.query_params,
                 verify=self.https_verify,
+                timeout=REQUEST_TIMEOUT,
             )
 
             feed.ParseFromString(response.content)
@@ -63,26 +83,29 @@ class VehiclePositionFeed:
         except requests.exceptions.RequestException as e:
             # catastrophic error. bail.
             raise SystemExit(e)
-
         except Exception as e:
             # TODO: update to be more fine-grained in future
-            self.updatetimeout(300)
+            self.update_timeout(ERROR_TIMEOUT)
             logger.exception(e)
-        # Returns list of feed entities
+
+        # Extract vehicle entities from feed
         try:
             # TODO: check if this is the best way to filter out messages
             vehicles = [e for e in feed.entity if e.HasField("vehicle")]
         except Exception as e:
-            logger.info(f"message does not have vehicle field {e}")
+            logger.warning(f"Failed to extract vehicle entities: {e}")
 
         return vehicles
 
     def consume_pb(self):
+        # Check memory limits before processing
+        self._check_memory_limit()
+
         feed_entities = self.get_entities()
 
         if len(feed_entities) == 0:
             logger.warning(f"Empty Protobuf file for {self.url}")
-            self.updatetimeout(300)
+            self.update_timeout(ERROR_TIMEOUT)
             # exit out of function
             return
 
@@ -112,14 +135,7 @@ class VehiclePositionFeed:
                             # first remove old
                             # this checks to make sure there are at least 2 measurements
                             if len(entity.updated_at) > 1:
-                                logger.info(type(self.s3_bucket))
-                                now = datetime.datetime.now()
-                                strf_rep = now.strftime("%Y%m%d")
-                                entity.savetos3(
-                                    self.s3_bucket,
-                                    f"{self.agency}/{strf_rep}/{entity.route_id}",
-                                )
-                                # entity.save(self.file_path)
+                                entity.save(self.file_path)
                             self.entities.remove(entity)
                             # now create new
                             entity = Entity(feed_entity)
@@ -128,22 +144,15 @@ class VehiclePositionFeed:
                     else:
                         current_ids.append(feed_entity.id)
             # remove and save finished entities
-            old_ids = [e.entity_id for e in self.entities]
-            ids_to_remove = [x for x in old_ids if x not in current_ids]
+            old_ids = {e.entity_id for e in self.entities}
+            ids_to_remove = old_ids - set(current_ids)
             for id in ids_to_remove:
                 # move logic onto object
                 entity = self.find_entity(id)
                 if entity:
                     # call save method
                     if len(entity.updated_at) > 1:
-                        logger.info(type(self.s3_bucket))
-                        now = datetime.datetime.now()
-                        strf_rep = now.strftime("%Y%m%d")
-                        entity.savetos3(
-                            self.s3_bucket,
-                            f"{self.agency}/{strf_rep}/{entity.route_id}",
-                        )
-                        # entity.save(self.file_path)
+                        entity.save(self.file_path)
                         logger.debug(
                             f"Saving entity {entity.entity_id} | {self.file_path}"
                         )
