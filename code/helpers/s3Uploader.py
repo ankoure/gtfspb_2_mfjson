@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 import io
 
 
-def upload_file(data, bucket, object_name):
+def upload_file(data: str, bucket: str, object_name: str) -> bool:
     """Upload data to an S3 bucket
 
     :param data: Data(Str) to upload
