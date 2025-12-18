@@ -76,3 +76,9 @@ dependencies = [
     "wcwidth==0.2.13",
     "xyzservices==2025.1.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "ruff>=0.14.9",
+]
