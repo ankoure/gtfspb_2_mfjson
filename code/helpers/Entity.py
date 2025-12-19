@@ -189,13 +189,25 @@ class Entity:
             file_name = f"{route_dir}/{uuid.uuid4()}.mfjson"
             with open(file_name, "w") as f:
                 f.write(self.toMFJSON())
+            logger.debug(
+                f"Entity saved: {self.entity_id} (route={self.route_id}, "
+                f"observations={len(self.updated_at)}, file={file_name})"
+            )
         except OSError as e:
             logger.error(f"Failed to save entity {self.entity_id} to {file_path}: {e}")
 
     def savetos3(self, bucket, file_path):
         s3_path = f"{file_path}/{uuid.uuid4()}.mfjson"
+        logger.debug(
+            f"Uploading entity {self.entity_id} to S3: s3://{bucket}/{s3_path}"
+        )
         success = upload_file(self.toMFJSON(), bucket, s3_path)
-        if not success:
+        if success:
+            logger.debug(
+                f"Entity uploaded to S3: {self.entity_id} (bucket={bucket}, "
+                f"observations={len(self.updated_at)}, path={s3_path})"
+            )
+        else:
             logger.error(
                 f"Failed to upload entity {self.entity_id} to S3 bucket {bucket}"
             )

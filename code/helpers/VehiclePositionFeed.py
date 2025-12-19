@@ -16,7 +16,6 @@ class VehiclePositionFeed:
     def __init__(
         self,
         url,
-        provider,
         file_path,
         s3_bucket,
         headers=None,
@@ -44,6 +43,7 @@ class VehiclePositionFeed:
         if len(self.entities) > MAX_ENTITIES:
             # Sort by creation time and remove oldest
             oldest = min(self.entities, key=lambda e: e.created)
+            logger.debug(f"Memory limit exceeded ({len(self.entities)}/{MAX_ENTITIES})")
             if len(oldest.updated_at) > 1:
                 oldest.save(self.file_path)
             self.entities.remove(oldest)
@@ -62,6 +62,7 @@ class VehiclePositionFeed:
             if "User-Agent" not in headers:
                 headers["User-Agent"] = "gtfspb-2-mfjson/1.0"
 
+            logger.debug(f"Fetching feed from {self.url}")
             response = requests.get(
                 self.url,
                 headers=headers,
@@ -69,31 +70,34 @@ class VehiclePositionFeed:
                 verify=self.https_verify,
                 timeout=REQUEST_TIMEOUT,
             )
+            response.raise_for_status()
+            logger.debug(f"Feed request successful. Status: {response.status_code}")
 
             feed.ParseFromString(response.content)
+            logger.debug("Successfully parsed protobuf feed")
         except DecodeError as e:
-            logger.warning(f"protobuf decode error for {self.url}, {e}")
+            logger.warning(f"Protobuf decode error for {self.url}: {e}")
         except requests.exceptions.Timeout:
-            logger.warning(f"Timeout for {self.url}")
-            # Maybe set up for a retry, or continue in a retry loop
+            logger.warning(
+                f"Request timeout for {self.url} (timeout={REQUEST_TIMEOUT}s)"
+            )
         except requests.exceptions.TooManyRedirects:
-            logger.warning(f"Too Many Redirects for {self.url}")
-        except requests.exceptions.SSLError:
-            logger.warning(f"SSL Error for {self.url}")
+            logger.warning(f"Too many redirects for {self.url}")
+        except requests.exceptions.SSLError as e:
+            logger.warning(f"SSL error for {self.url}: {e}")
         except requests.exceptions.RequestException as e:
-            # catastrophic error. bail.
+            logger.error(f"Request failed for {self.url}: {e}")
             raise SystemExit(e)
         except Exception as e:
-            # TODO: update to be more fine-grained in future
             self.update_timeout(ERROR_TIMEOUT)
-            logger.exception(e)
+            logger.exception(f"Unexpected error fetching feed from {self.url}: {e}")
 
         # Extract vehicle entities from feed
         try:
-            # TODO: check if this is the best way to filter out messages
             vehicles = [e for e in feed.entity if e.HasField("vehicle")]
+            logger.debug(f"Extracted {len(vehicles)} vehicle entities from feed")
         except Exception as e:
-            logger.warning(f"Failed to extract vehicle entities: {e}")
+            logger.error(f"Failed to extract vehicle entities: {e}")
 
         return vehicles
 
@@ -104,18 +108,26 @@ class VehiclePositionFeed:
         feed_entities = self.get_entities()
 
         if len(feed_entities) == 0:
-            logger.warning(f"Empty Protobuf file for {self.url}")
+            logger.warning(f"Empty feed for {self.url}")
             self.update_timeout(ERROR_TIMEOUT)
-            # exit out of function
             return
 
+        logger.debug(f"Processing {len(feed_entities)} feed entities")
+
         if len(self.entities) == 0:
-            # check if any observations exist, if none create all new objects
+            # create all new objects
+            logger.info(
+                f"No existing entities. Creating {len(feed_entities)} new entities"
+            )
             for feed_entity in feed_entities:
                 entity = Entity(feed_entity)
                 self.entities.append(entity)
+            logger.debug(f"Total entities after creation: {len(self.entities)}")
         else:
             current_ids = []
+            updated_count = 0
+            direction_changed_count = 0
+
             # find and update entity
             for feed_entity in feed_entities:
                 entity = self.find_entity(feed_entity.id)
@@ -131,11 +143,15 @@ class VehiclePositionFeed:
                         if entity.direction_id == feed_entity.vehicle.trip.direction_id:
                             entity.update(feed_entity)
                             current_ids.append(feed_entity.id)
+                            updated_count += 1
                         else:
-                            # first remove old
-                            # this checks to make sure there are at least 2 measurements
+                            # Direction changed - save old and create new
+                            direction_changed_count += 1
                             if len(entity.updated_at) > 1:
                                 entity.save(self.file_path)
+                                logger.debug(
+                                    f"Saved entity {entity.entity_id} (direction changed)"
+                                )
                             self.entities.remove(entity)
                             # now create new
                             entity = Entity(feed_entity)
@@ -143,18 +159,22 @@ class VehiclePositionFeed:
                             current_ids.append(feed_entity.id)
                     else:
                         current_ids.append(feed_entity.id)
+
             # remove and save finished entities
             old_ids = {e.entity_id for e in self.entities}
             ids_to_remove = old_ids - set(current_ids)
+            saved_count = 0
+
             for id in ids_to_remove:
-                # move logic onto object
                 entity = self.find_entity(id)
                 if entity:
-                    # call save method
                     if len(entity.updated_at) > 1:
                         entity.save(self.file_path)
-                        logger.debug(
-                            f"Saving entity {entity.entity_id} | {self.file_path}"
-                        )
-                    # remove from list
+                        saved_count += 1
+                        logger.debug(f"Saved finished entity {entity.entity_id}")
                     self.entities.remove(entity)
+
+            logger.debug(
+                f"Feed processing complete: {updated_count} updated, "
+                f"{direction_changed_count} direction changes, {saved_count} saved"
+            )
