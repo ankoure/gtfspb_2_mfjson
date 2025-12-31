@@ -1,0 +1,56 @@
+services:
+  gtfs-converter:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: gtfspb-converter
+
+    # Load environment variables from .env file
+    env_file:
+      - .env
+
+    # Additional environment variables (can override .env)
+    environment:
+      - LOG_LEVEL=INFO
+
+    # Volume mounts
+    volumes:
+      # Persist collected data
+      - ./data:/app/data
+      # Persist logs
+      - ./logs:/app/logs
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "test", "-d", "/app/data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Graceful shutdown
+    stop_grace_period: 30s
+
+networks:
+  default:
+    name: gtfs-network

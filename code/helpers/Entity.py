@@ -80,8 +80,6 @@ class Entity:
                 carriage_obj.update(carriage)
 
     def toMFJSON(self):
-        # TODO: add carriage details
-        # TODO: Need to update properties being written out
         dict_template = {
             "type": "FeatureCollection",
             "features": [
@@ -180,10 +178,8 @@ class Entity:
         month = date.month
         day = date.day
 
-        # Create path with date-based subdirectories: Year=YYYY/Month=MM/Day=DD
-        route_dir = (
-            f"{file_path}/{self.route_id}/Year={year}/Month={month:02d}/Day={day:02d}"
-        )
+        # Create path with date-based subdirectories: raw/{route_id}/Year=YYYY/Month=MM/Day=DD
+        route_dir = f"{file_path}/raw/{self.route_id}/Year={year}/Month={month:02d}/Day={day:02d}"
         try:
             os.makedirs(route_dir, mode=0o755, exist_ok=True)
             file_name = f"{route_dir}/{uuid.uuid4()}.mfjson"
