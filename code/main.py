@@ -71,7 +71,14 @@ def aggregation_thread(config: Config):
             if should_run:
                 logger.info(f"Starting scheduled aggregation at {now}")
                 try:
-                    agg_count, fail_count = aggregate_all(data_dir=data_dir)
+                    # Aggregate previous day's data
+                    yesterday = now - datetime.timedelta(days=1)
+                    agg_count, fail_count = aggregate_all(
+                        data_dir=data_dir,
+                        year=yesterday.year,
+                        month=yesterday.month,
+                        day=yesterday.day,
+                    )
                     logger.info(
                         f"Aggregation complete: {agg_count} created, {fail_count} failed"
                     )

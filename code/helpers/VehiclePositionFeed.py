@@ -159,11 +159,18 @@ class VehiclePositionFeed:
                             current_ids.append(feed_entity.id)
                     else:
                         current_ids.append(feed_entity.id)
+                else:
+                    # New entity not seen before - create it
+                    entity = Entity(feed_entity)
+                    self.entities.append(entity)
+                    current_ids.append(feed_entity.id)
+                    updated_count += 1
 
             # remove and save finished entities
             old_ids = {e.entity_id for e in self.entities}
             ids_to_remove = old_ids - set(current_ids)
             saved_count = 0
+            discarded_count = 0
 
             for id in ids_to_remove:
                 entity = self.find_entity(id)
@@ -172,9 +179,16 @@ class VehiclePositionFeed:
                         entity.save(self.file_path)
                         saved_count += 1
                         logger.debug(f"Saved finished entity {entity.entity_id}")
+                    else:
+                        discarded_count += 1
+                        logger.debug(
+                            f"Discarded entity {entity.entity_id} "
+                            f"({len(entity.updated_at)} observation)"
+                        )
                     self.entities.remove(entity)
 
             logger.debug(
                 f"Feed processing complete: {updated_count} updated, "
-                f"{direction_changed_count} direction changes, {saved_count} saved"
+                f"{direction_changed_count} direction changes, {saved_count} saved, "
+                f"{discarded_count} discarded"
             )

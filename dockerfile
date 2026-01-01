@@ -37,14 +37,11 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=999,gid=999 \
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Create data and logs directories with proper permissions
-RUN mkdir -p /app/data /app/logs && \
-    chown -R nonroot:nonroot /app && \
-    find /app -type d -exec chmod 755 {} \; && \
-    find /app -type f -exec chmod 644 {} \; && \
-    find /app -type f -name "*.py" -exec chmod 755 {} \; && \
-    chmod 755 /app/.venv/bin/* && \
-    chmod 775 /app/data /app/logs
+# Set proper permissions for the app
+RUN chown -R nonroot:nonroot /app && \
+    chmod -R u+rwX,g+rX,o+rX /app && \
+    chmod -R u-w,g-w,o-w /app/code && \
+    chmod u+w /app/code /app/data /app/logs
 
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []

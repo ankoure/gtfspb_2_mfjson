@@ -3,7 +3,8 @@
 Trajectory aggregation script for daily route summaries.
 
 Combines multiple individual trajectory files (one per vehicle trip) into a single
-MFJSON FeatureCollection for each route per day.
+MFJSON FeatureCollection for each route per day. Can optionally upload to S3 and
+delete local files after successful upload.
 
 Usage:
     python aggregate_trajectories.py [OPTIONS]
@@ -20,6 +21,12 @@ Examples:
 
     # Aggregate specific year/month
     python aggregate_trajectories.py --agency MBTA --year 2025 --month 12
+
+    # Upload to S3
+    python aggregate_trajectories.py --s3-bucket my-bucket
+
+    # Upload to S3 and delete local files
+    python aggregate_trajectories.py --s3-bucket my-bucket --delete-after-upload
 """
 
 import json
@@ -28,6 +35,7 @@ import argparse
 from pathlib import Path
 from typing import Optional
 from collections import defaultdict
+from helpers.s3Uploader import upload_file
 
 # Setup logger
 logging.basicConfig(
@@ -125,8 +133,17 @@ def aggregate_day(
     return aggregate_trajectories(all_features)
 
 
-def save_aggregated(aggregated_data: dict, output_dir: Path) -> bool:
-    """Save aggregated MFJSON to file."""
+def save_aggregated(
+    aggregated_data: dict,
+    output_dir: Path,
+    s3_bucket: Optional[str] = None,
+    delete_after_upload: bool = False,
+) -> tuple[bool, Optional[str]]:
+    """Save aggregated MFJSON to file and optionally upload to S3.
+
+    Returns:
+        Tuple of (success: bool, file_path: str or None)
+    """
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "aggregated.mfjson"
@@ -135,11 +152,36 @@ def save_aggregated(aggregated_data: dict, output_dir: Path) -> bool:
             json.dump(aggregated_data, f, indent=2)
 
         logger.debug(f"Saved aggregated data to {output_file}")
-        return True
+
+        # Upload to S3 if bucket is specified
+        if s3_bucket:
+            # Build S3 path: aggregated/{agency}/{route}/{date}/aggregated.mfjson
+            relative_path = output_file.relative_to(output_file.parents[6])
+            s3_path = f"aggregated/{relative_path}"
+
+            with open(output_file, "r") as f:
+                file_data = f.read()
+
+            if upload_file(file_data, s3_bucket, str(s3_path)):
+                logger.info(f"Uploaded to S3: s3://{s3_bucket}/{s3_path}")
+
+                # Delete local file if requested
+                if delete_after_upload:
+                    try:
+                        output_file.unlink()
+                        logger.debug(f"Deleted local file: {output_file}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete {output_file}: {e}")
+                        return False, str(output_file)
+            else:
+                logger.error(f"Failed to upload {output_file} to S3")
+                return False, str(output_file)
+
+        return True, str(output_file)
 
     except Exception as e:
         logger.error(f"Failed to save aggregated data to {output_dir}: {e}")
-        return False
+        return False, None
 
 
 def find_date_ranges(
@@ -201,6 +243,8 @@ def aggregate_all(
     year: Optional[int] = None,
     month: Optional[int] = None,
     day: Optional[int] = None,
+    s3_bucket: Optional[str] = None,
+    delete_after_upload: bool = False,
 ) -> tuple[int, int]:
     """
     Programmatic interface for aggregating trajectories.
@@ -212,6 +256,8 @@ def aggregate_all(
         year: Specific year to aggregate (None for all)
         month: Specific month to aggregate (None for all)
         day: Specific day to aggregate (None for all)
+        s3_bucket: S3 bucket name for uploading (None to skip S3)
+        delete_after_upload: Delete local files after successful S3 upload
 
     Returns:
         Tuple of (total_aggregated, total_failed)
@@ -229,6 +275,10 @@ def aggregate_all(
         logger.info(f"Month filter: {month}")
     if day:
         logger.info(f"Day filter: {day}")
+    if s3_bucket:
+        logger.info(f"S3 bucket: {s3_bucket}")
+        if delete_after_upload:
+            logger.info("Delete after upload: True")
 
     logger.info("")
 
@@ -289,7 +339,13 @@ def aggregate_all(
                         / f"Day={d:02d}"
                     )
 
-                    if save_aggregated(aggregated, output_dir):
+                    success, _ = save_aggregated(
+                        aggregated,
+                        output_dir,
+                        s3_bucket=s3_bucket,
+                        delete_after_upload=delete_after_upload,
+                    )
+                    if success:
                         total_aggregated += 1
                     else:
                         total_failed += 1
@@ -333,6 +389,16 @@ def main():
         default="./data",
         help="Data directory (default: ./data)",
     )
+    parser.add_argument(
+        "--s3-bucket",
+        type=str,
+        help="S3 bucket for uploading aggregated files (optional)",
+    )
+    parser.add_argument(
+        "--delete-after-upload",
+        action="store_true",
+        help="Delete local files after successful S3 upload",
+    )
 
     args = parser.parse_args()
 
@@ -343,6 +409,8 @@ def main():
         year=args.year,
         month=args.month,
         day=args.day,
+        s3_bucket=args.s3_bucket,
+        delete_after_upload=args.delete_after_upload,
     )
 
 

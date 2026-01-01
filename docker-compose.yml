@@ -15,10 +15,10 @@ services:
 
     # Volume mounts
     volumes:
-      # Persist collected data
-      - ./data:/app/data
-      # Persist logs
-      - ./logs:/app/logs
+      # Persist collected data using Docker volume
+      - gtfs_data:/app/data
+      # Persist logs using Docker volume
+      - gtfs_logs:/app/logs
 
     # Restart policy
     restart: unless-stopped
@@ -54,3 +54,9 @@ services:
 networks:
   default:
     name: gtfs-network
+
+volumes:
+  gtfs_data:
+    driver: local
+  gtfs_logs:
+    driver: local
