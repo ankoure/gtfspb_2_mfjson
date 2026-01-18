@@ -2,10 +2,10 @@ import signal
 import threading
 import datetime
 from pathlib import Path
-from helpers.config import Config
-from helpers.VehiclePositionFeed import VehiclePositionFeed
-from helpers.setup_logger import logger
-from scripts.aggregate_trajectories import aggregate_all
+from code.helpers.config import Config
+from code.helpers.VehiclePositionFeed import VehiclePositionFeed
+from code.helpers.setup_logger import logger
+from code.helpers.TrajectoryAggregator import aggregate_all
 
 
 _shutdown_event = threading.Event()
@@ -52,7 +52,7 @@ def collection_thread(config: Config):
 def aggregation_thread(config: Config):
     """Thread for periodic trajectory aggregation."""
     try:
-        data_dir = Path("./data") / config.provider
+        data_dir = Path("./data")
         last_aggregation = None
         aggregation_hour = 2  # Run at 2 AM
 
@@ -75,9 +75,13 @@ def aggregation_thread(config: Config):
                     yesterday = now - datetime.timedelta(days=1)
                     agg_count, fail_count = aggregate_all(
                         data_dir=data_dir,
+                        agency=config.provider,
                         year=yesterday.year,
                         month=yesterday.month,
                         day=yesterday.day,
+                        s3_bucket=config.s3_bucket,
+                        delete_after_upload=True,
+                        delete_raw_files=True,
                     )
                     logger.info(
                         f"Aggregation complete: {agg_count} created, {fail_count} failed"

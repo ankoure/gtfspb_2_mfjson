@@ -1,8 +1,8 @@
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.message import DecodeError
 import requests
-from helpers.Entity import Entity
-from helpers.setup_logger import logger
+from code.helpers.Entity import Entity
+from code.helpers.setup_logger import logger
 import datetime
 
 # Constants

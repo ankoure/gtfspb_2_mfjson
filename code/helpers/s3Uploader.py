@@ -1,4 +1,4 @@
-from helpers.setup_logger import logger
+from code.helpers.setup_logger import logger
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 import io
