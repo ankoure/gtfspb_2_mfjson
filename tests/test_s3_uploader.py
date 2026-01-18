@@ -1,9 +1,8 @@
 """Tests for S3 Uploader functionality."""
 
-import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
-from code.helpers.s3Uploader import upload_file
+from src.helpers.s3Uploader import upload_file
 
 
 class TestS3UploaderSuccess:

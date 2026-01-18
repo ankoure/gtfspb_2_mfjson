@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
-from code.helpers.config import Config
+from src.helpers.config import Config
 
 config = Config()
 log_file = config.log_file

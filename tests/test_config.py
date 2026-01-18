@@ -1,7 +1,7 @@
 """Tests for Config class."""
 
 import pytest
-from code.helpers.config import Config
+from src.helpers.config import Config
 
 
 class TestConfigSingleton:

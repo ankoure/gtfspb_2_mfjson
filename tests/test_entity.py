@@ -1,9 +1,8 @@
 """Tests for Entity class."""
 
-import pytest
 import json
 from google.transit import gtfs_realtime_pb2
-from code.helpers.Entity import Entity, Carriage
+from src.helpers.Entity import Entity, Carriage
 
 
 class TestEntityBasicInitialization:
@@ -187,7 +186,6 @@ class TestCarriageClass:
     def test_carriage_update(self, mock_carriage):
         """Test updating a Carriage with new occupancy status."""
         carriage = Carriage(mock_carriage)
-        initial_status = carriage.occupancy_status[0]
 
         # Update with new status
         mock_carriage.occupancy_status = (

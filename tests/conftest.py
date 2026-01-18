@@ -3,7 +3,7 @@
 import pytest
 import time
 from google.transit import gtfs_realtime_pb2
-from code.helpers.config import Config
+from src.helpers.config import Config
 
 
 @pytest.fixture

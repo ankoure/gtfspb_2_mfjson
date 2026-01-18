@@ -1,11 +1,10 @@
 """Tests for VehiclePositionFeed class."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import requests
-from google.protobuf.message import DecodeError
-from code.helpers.VehiclePositionFeed import VehiclePositionFeed
-from code.helpers.Entity import Entity
+from src.helpers.VehiclePositionFeed import VehiclePositionFeed
+from src.helpers.Entity import Entity
 
 
 class TestVehiclePositionFeedInitialization:

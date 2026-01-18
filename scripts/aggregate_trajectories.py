@@ -39,15 +39,16 @@ import logging
 import sys
 from pathlib import Path
 
+# Add project root to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.helpers.TrajectoryAggregator import aggregate_all
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from code.helpers.TrajectoryAggregator import aggregate_all
 
 # Setup logger
 logging.basicConfig(

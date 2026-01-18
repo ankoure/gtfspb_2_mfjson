@@ -2,8 +2,8 @@ import uuid
 import json
 import datetime
 import os
-from code.helpers.s3Uploader import upload_file
-from code.helpers.setup_logger import logger
+from src.helpers.s3Uploader import upload_file
+from src.helpers.setup_logger import logger
 
 
 class Carriage:

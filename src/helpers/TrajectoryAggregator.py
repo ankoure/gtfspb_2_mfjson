@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Optional
 from collections import defaultdict
 
-from code.helpers.GTFSStaticManager import GTFSStaticManager
-from code.helpers.SegmentMatcher import SegmentMatcher
-from code.helpers.s3Uploader import upload_file
+from src.helpers.GTFSStaticManager import GTFSStaticManager
+from src.helpers.SegmentMatcher import SegmentMatcher
+from src.helpers.s3Uploader import upload_file
 
 logger = logging.getLogger(__name__)
 
