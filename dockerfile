@@ -4,8 +4,7 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 # Setup a non-root user
-RUN groupadd --system --gid 999 nonroot \
- && useradd --system --gid 999 --uid 999 --create-home nonroot
+RUN useradd --system --create-home nonroot
 
 # Install the project into `/app`
 WORKDIR /app
@@ -23,7 +22,7 @@ ENV UV_NO_DEV=1
 ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
 # Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=999,gid=999 \
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project
@@ -31,17 +30,11 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=999,gid=999 \
 # Then, add the rest of the project source code and install it
 # Installing separately from its dependencies allows optimal layer caching
 COPY . /app
-RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=999,gid=999 \
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv \
     uv sync --locked
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
-
-# Set proper permissions for the app
-RUN chown -R nonroot:nonroot /app && \
-    chmod -R u+rwX,g+rX,o+rX /app && \
-    chmod -R u-w,g-w,o-w /app/code && \
-    chmod u+w /app/code /app/data /app/logs
 
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
