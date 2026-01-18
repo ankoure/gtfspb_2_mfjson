@@ -180,5 +180,5 @@ def valid_env(monkeypatch):
 @pytest.fixture
 def valid_config(reset_config, valid_env, monkeypatch):
     """Create a Config instance with valid test values."""
-    monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+    monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
     return Config()

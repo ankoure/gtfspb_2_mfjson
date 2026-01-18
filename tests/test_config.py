@@ -10,7 +10,7 @@ class TestConfigSingleton:
     def test_singleton_same_instance(self, reset_config, valid_env, monkeypatch):
         """Config should return the same instance on multiple calls."""
         # reset_config and valid_env are used for side effects
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
         config1 = Config()
         config2 = Config()
         assert config1 is config2
@@ -18,7 +18,7 @@ class TestConfigSingleton:
     def test_singleton_preserves_state(self, reset_config, valid_env, monkeypatch):
         """Config should preserve state across calls."""
         # reset_config and valid_env are used for side effects
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
         config = Config()
         original_api_key = config.api_key
         config2 = Config()
@@ -43,7 +43,7 @@ class TestConfigInitialization:
         monkeypatch.setenv("LOG_FILE", "/var/log/app.log")
         monkeypatch.setenv("API_KEY_HEADER", "Authorization")
         monkeypatch.setenv("API_KEY_QUERY", "key_param")
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
 
@@ -63,7 +63,7 @@ class TestConfigInitialization:
         monkeypatch.delenv("LOG_FILE", raising=False)
         monkeypatch.delenv("API_KEY_HEADER", raising=False)
         monkeypatch.delenv("API_KEY_QUERY", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
 
@@ -76,7 +76,7 @@ class TestConfigInitialization:
         self, reset_config, valid_env, monkeypatch
     ):
         """Config should only initialize once, even if __init__ is called again."""
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
         config = Config()
         initial_api_key = config.api_key
 
@@ -96,7 +96,7 @@ class TestConfigValidation:
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.delenv("API_KEY", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         with pytest.raises(ValueError) as exc_info:
             Config()
@@ -107,7 +107,7 @@ class TestConfigValidation:
         monkeypatch.setenv("API_KEY", "key")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.delenv("PROVIDER", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         with pytest.raises(ValueError) as exc_info:
             Config()
@@ -118,7 +118,7 @@ class TestConfigValidation:
         monkeypatch.setenv("API_KEY", "key")
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.delenv("FEED_URL", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         with pytest.raises(ValueError) as exc_info:
             Config()
@@ -129,7 +129,7 @@ class TestConfigValidation:
         monkeypatch.delenv("API_KEY", raising=False)
         monkeypatch.delenv("PROVIDER", raising=False)
         monkeypatch.delenv("FEED_URL", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         with pytest.raises(ValueError) as exc_info:
             Config()
@@ -153,7 +153,7 @@ class TestConfigHeaders:
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.setenv("API_KEY_HEADER", "Authorization")
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
         headers = config.get_headers()
@@ -167,7 +167,7 @@ class TestConfigHeaders:
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.delenv("API_KEY_HEADER", raising=False)
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
         config.api_key_header = None
@@ -184,7 +184,7 @@ class TestConfigQueryParams:
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.setenv("API_KEY_QUERY", "apikey")
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
         params = config.get_query_params()
@@ -201,7 +201,7 @@ class TestConfigQueryParams:
         monkeypatch.setenv("PROVIDER", "provider")
         monkeypatch.setenv("FEED_URL", "http://url")
         monkeypatch.setenv("API_KEY_QUERY", "token")
-        monkeypatch.setattr("code.helpers.config.load_dotenv", lambda: None)
+        monkeypatch.setattr("src.helpers.config.load_dotenv", lambda: None)
 
         config = Config()
         params = config.get_query_params()

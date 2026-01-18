@@ -99,7 +99,7 @@ class TestGetEntitiesWithMockedRequests:
     """Test get_entities with mocked HTTP requests."""
 
     @pytest.mark.parametrize("num_entities", [1, 5, 10])
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_success(self, mock_get, num_entities, mock_feed_message):
         """Test successfully fetching and parsing a feed."""
         # Create feed with multiple entities
@@ -128,7 +128,7 @@ class TestGetEntitiesWithMockedRequests:
         assert all(v.HasField("vehicle") for v in vehicles)
         mock_get.assert_called_once()
 
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_with_custom_headers(self, mock_get, mock_feed_message):
         """Test that custom headers are sent with request."""
         mock_response = Mock()
@@ -152,7 +152,7 @@ class TestGetEntitiesWithMockedRequests:
         assert call_kwargs["headers"]["X-API-Key"] == "secret123"
         assert "User-Agent" in call_kwargs["headers"]
 
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_empty_feed(self, mock_get):
         """Test handling of empty feed."""
         empty_feed = Mock()
@@ -174,7 +174,7 @@ class TestGetEntitiesWithMockedRequests:
         # Empty feed should return empty list
         assert len(vehicles) == 0
 
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_timeout(self, mock_get):
         """Test handling of request timeout."""
         mock_get.side_effect = requests.exceptions.Timeout()
@@ -190,7 +190,7 @@ class TestGetEntitiesWithMockedRequests:
         # Should return empty list on timeout
         assert vehicles == []
 
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_ssl_error(self, mock_get):
         """Test handling of SSL errors."""
         mock_get.side_effect = requests.exceptions.SSLError("SSL certificate error")
@@ -205,7 +205,7 @@ class TestGetEntitiesWithMockedRequests:
 
         assert vehicles == []
 
-    @patch("code.helpers.VehiclePositionFeed.requests.get")
+    @patch("src.helpers.VehiclePositionFeed.requests.get")
     def test_get_entities_http_error(self, mock_get):
         """Test handling of HTTP errors."""
         mock_response = Mock()
@@ -227,7 +227,7 @@ class TestGetEntitiesWithMockedRequests:
 class TestConsumePB:
     """Test protobuf consumption and entity management."""
 
-    @patch("code.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
+    @patch("src.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
     def test_consume_pb_creates_new_entities(
         self, mock_get_entities, mock_feed_message_multiple_entities
     ):
@@ -247,7 +247,7 @@ class TestConsumePB:
         assert len(feed.entities) == len(vehicles)
         assert all(isinstance(e, Entity) for e in feed.entities)
 
-    @patch("code.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
+    @patch("src.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
     def test_consume_pb_updates_existing_entities(
         self, mock_get_entities, mock_feed_message_multiple_entities
     ):
@@ -277,7 +277,7 @@ class TestConsumePB:
 
         assert len(feed.entities) == initial_count
 
-    @patch("code.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
+    @patch("src.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
     def test_consume_pb_empty_feed(self, mock_get_entities):
         """Test consume_pb with empty feed."""
         mock_get_entities.return_value = []
@@ -297,8 +297,8 @@ class TestConsumePB:
 class TestMemoryLimit:
     """Test memory limit enforcement."""
 
-    @patch("code.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
-    @patch("code.helpers.Entity.Entity.save")
+    @patch("src.helpers.VehiclePositionFeed.VehiclePositionFeed.get_entities")
+    @patch("src.helpers.Entity.Entity.save")
     def test_memory_limit_removal(
         self, mock_save, mock_get_entities, mock_feed_message_multiple_entities
     ):

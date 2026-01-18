@@ -8,7 +8,7 @@ from src.helpers.s3Uploader import upload_file
 class TestS3UploaderSuccess:
     """Test successful S3 upload scenarios."""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_success(self, mock_boto3_client):
         """Test successful file upload to S3."""
         # Setup mock
@@ -35,7 +35,7 @@ class TestS3UploaderSuccess:
         # Body should be a BytesIO object with encoded data
         assert call_kwargs["Body"].read() == test_data.encode("utf-8")
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_with_special_characters(self, mock_boto3_client):
         """Test uploading data with special characters and unicode."""
         mock_s3_client = MagicMock()
@@ -52,7 +52,7 @@ class TestS3UploaderSuccess:
         call_kwargs = mock_s3_client.put_object.call_args[1]
         assert call_kwargs["Body"].read() == test_data.encode("utf-8")
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_with_complex_key(self, mock_boto3_client):
         """Test uploading with complex S3 object keys (paths)."""
         mock_s3_client = MagicMock()
@@ -68,7 +68,7 @@ class TestS3UploaderSuccess:
         call_kwargs = mock_s3_client.put_object.call_args[1]
         assert call_kwargs["Key"] == object_name
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_with_large_data(self, mock_boto3_client):
         """Test uploading large amounts of data."""
         mock_s3_client = MagicMock()
@@ -88,7 +88,7 @@ class TestS3UploaderSuccess:
 class TestS3UploaderCredentialErrors:
     """Test credential-related error handling."""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_no_credentials(self, mock_boto3_client):
         """Test handling of missing AWS credentials."""
         mock_boto3_client.side_effect = NoCredentialsError()
@@ -97,7 +97,7 @@ class TestS3UploaderCredentialErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_partial_credentials(self, mock_boto3_client):
         """Test handling of incomplete AWS credentials."""
         mock_boto3_client.side_effect = PartialCredentialsError(
@@ -112,7 +112,7 @@ class TestS3UploaderCredentialErrors:
 class TestS3UploaderClientErrors:
     """Test boto3 ClientError handling."""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_bucket_not_found(self, mock_boto3_client):
         """Test handling of NoSuchBucket error."""
         mock_s3_client = MagicMock()
@@ -131,7 +131,7 @@ class TestS3UploaderClientErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_access_denied(self, mock_boto3_client):
         """Test handling of AccessDenied error."""
         mock_s3_client = MagicMock()
@@ -149,7 +149,7 @@ class TestS3UploaderClientErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_invalid_bucket_name(self, mock_boto3_client):
         """Test handling of InvalidBucketName error."""
         mock_s3_client = MagicMock()
@@ -167,7 +167,7 @@ class TestS3UploaderClientErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_throttling(self, mock_boto3_client):
         """Test handling of throttling/rate limiting errors."""
         mock_s3_client = MagicMock()
@@ -189,7 +189,7 @@ class TestS3UploaderClientErrors:
 class TestS3UploaderUnexpectedErrors:
     """Test handling of unexpected exceptions."""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_unexpected_exception(self, mock_boto3_client):
         """Test handling of unexpected exceptions."""
         mock_boto3_client.side_effect = RuntimeError("Unexpected error occurred")
@@ -198,7 +198,7 @@ class TestS3UploaderUnexpectedErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_connection_error(self, mock_boto3_client):
         """Test handling of connection errors."""
         mock_boto3_client.side_effect = ConnectionError("Connection refused")
@@ -207,7 +207,7 @@ class TestS3UploaderUnexpectedErrors:
 
         assert result is False
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_timeout(self, mock_boto3_client):
         """Test handling of timeout errors."""
         mock_s3_client = MagicMock()
@@ -223,8 +223,8 @@ class TestS3UploaderUnexpectedErrors:
 class TestS3UploaderLogging:
     """Test logging behavior during uploads."""
 
-    @patch("code.helpers.s3Uploader.logger")
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.logger")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_success_logging(self, mock_boto3_client, mock_logger):
         """Test that successful upload logs debug messages."""
         mock_s3_client = MagicMock()
@@ -235,8 +235,8 @@ class TestS3UploaderLogging:
         # Should have debug logs for attempt and success
         assert mock_logger.debug.call_count >= 2
 
-    @patch("code.helpers.s3Uploader.logger")
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.logger")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_no_credentials_logging(self, mock_boto3_client, mock_logger):
         """Test that NoCredentialsError logs error."""
         mock_boto3_client.side_effect = NoCredentialsError()
@@ -245,8 +245,8 @@ class TestS3UploaderLogging:
 
         mock_logger.error.assert_called()
 
-    @patch("code.helpers.s3Uploader.logger")
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.logger")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_partial_credentials_logging(self, mock_boto3_client, mock_logger):
         """Test that PartialCredentialsError logs error."""
         mock_boto3_client.side_effect = PartialCredentialsError(
@@ -257,8 +257,8 @@ class TestS3UploaderLogging:
 
         mock_logger.error.assert_called()
 
-    @patch("code.helpers.s3Uploader.logger")
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.logger")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_client_error_logging(self, mock_boto3_client, mock_logger):
         """Test that ClientError logs specific error messages."""
         mock_s3_client = MagicMock()
@@ -276,8 +276,8 @@ class TestS3UploaderLogging:
 
         mock_logger.error.assert_called()
 
-    @patch("code.helpers.s3Uploader.logger")
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.logger")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_unexpected_error_logging(self, mock_boto3_client, mock_logger):
         """Test that unexpected errors are logged with exception context."""
         mock_boto3_client.side_effect = RuntimeError("Test error")
@@ -290,7 +290,7 @@ class TestS3UploaderLogging:
 class TestS3UploaderEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_empty_string(self, mock_boto3_client):
         """Test uploading an empty string."""
         mock_s3_client = MagicMock()
@@ -302,7 +302,7 @@ class TestS3UploaderEdgeCases:
         call_kwargs = mock_s3_client.put_object.call_args[1]
         assert call_kwargs["Body"].read() == b""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_empty_bucket_name(self, mock_boto3_client):
         """Test behavior with empty bucket name."""
         mock_s3_client = MagicMock()
@@ -314,7 +314,7 @@ class TestS3UploaderEdgeCases:
         # Should still attempt upload - S3 will validate
         mock_s3_client.put_object.assert_called_once()
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_empty_object_name(self, mock_boto3_client):
         """Test behavior with empty object name."""
         mock_s3_client = MagicMock()
@@ -326,7 +326,7 @@ class TestS3UploaderEdgeCases:
         call_kwargs = mock_s3_client.put_object.call_args[1]
         assert call_kwargs["Key"] == ""
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_with_newlines(self, mock_boto3_client):
         """Test uploading data with newlines and whitespace."""
         mock_s3_client = MagicMock()
@@ -342,7 +342,7 @@ class TestS3UploaderEdgeCases:
         call_kwargs = mock_s3_client.put_object.call_args[1]
         assert call_kwargs["Body"].read() == test_data.encode("utf-8")
 
-    @patch("code.helpers.s3Uploader.boto3.client")
+    @patch("src.helpers.s3Uploader.boto3.client")
     def test_upload_file_with_json_data(self, mock_boto3_client):
         """Test uploading JSON data."""
         mock_s3_client = MagicMock()
