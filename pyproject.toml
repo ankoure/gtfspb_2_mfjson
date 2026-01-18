@@ -9,10 +9,22 @@ dependencies = [
     "gtfs-realtime-bindings>=2.0.0",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
+    "gtfs-kit>=6.1.0",
+    "pandas>=2.2.0",
+    "shapely>=2.0.0",
 ]
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.14.9",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
