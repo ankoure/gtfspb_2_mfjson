@@ -8,6 +8,7 @@ permissions:
 jobs:
     docs:
         runs-on: ubuntu-latest
+
         steps:
             - uses: actions/checkout@v4
 
@@ -19,15 +20,19 @@ jobs:
               run: |
                   pip install sphinx sphinx_rtd_theme myst_parser
 
-            - name: Sphinx build
+            - name: Build Sphinx docs
               run: |
                   sphinx-build -b html doc/source doc/build/html
+
+            - name: Disable Jekyll
+              run: |
+                  touch doc/build/html/.nojekyll
 
             - name: Deploy to GitHub Pages
               uses: peaceiris/actions-gh-pages@v3
               if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
               with:
-                  publish_branch: gh-pages
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_branch: gh-pages
                   publish_dir: doc/build/html
                   force_orphan: true
