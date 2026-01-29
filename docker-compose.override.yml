@@ -1,5 +1,7 @@
 x-common: &common
-  image: ghcr.io/ankoure/gtfspb_2_mfjson:latest
+  build:
+    context: .
+    dockerfile: dockerfile
   environment:
     - LOG_LEVEL=INFO
   volumes:
