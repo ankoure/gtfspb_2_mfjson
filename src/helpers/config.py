@@ -52,12 +52,15 @@ class Config:
         """Validate that all required environment variables are set."""
         missing_vars = []
 
-        if not self.api_key:
-            missing_vars.append("API_KEY")
         if not self.provider:
             missing_vars.append("PROVIDER")
         if not self.feed_url:
             missing_vars.append("FEED_URL")
+
+        # API_KEY is only required if authentication is configured
+        auth_configured = self.api_key_header or self.api_key_query
+        if auth_configured and not self.api_key:
+            missing_vars.append("API_KEY")
 
         if missing_vars:
             raise ValueError(
