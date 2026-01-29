@@ -3,8 +3,10 @@
 # Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# Setup a non-root user
-RUN useradd --system --create-home nonroot
+# Install gosu for dropping privileges and setup non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --create-home nonroot
 
 # Install the project into `/app`
 WORKDIR /app
@@ -36,10 +38,12 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/uv \
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Reset the entrypoint, don't invoke `uv`
-ENTRYPOINT []
+# Create data and logs directories
+RUN mkdir -p /app/data /app/logs
 
-# Use the non-root user to run our application
-USER nonroot
+# Setup entrypoint script for runtime permission fixing
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["uv", "run", "python", "code/main.py"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["uv", "run", "python", "-m", "src.main"]
