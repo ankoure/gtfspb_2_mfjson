@@ -1,0 +1,157 @@
+name: Scheduled Deploy
+
+on:
+  schedule:
+    # Each timezone restarts at their local 4 AM
+    - cron: '0 9 * * *'   # 4 AM Eastern (UTC-5)
+    - cron: '0 10 * * *'  # 4 AM Central (UTC-6)
+    - cron: '0 11 * * *'  # 4 AM Mountain (UTC-7)
+    - cron: '0 12 * * *'  # 4 AM Pacific (UTC-8)
+  workflow_dispatch:
+    inputs:
+      timezone:
+        description: 'Which timezone group to restart'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - eastern
+          - central
+          - mountain
+          - pacific
+
+env:
+  EASTERN_SERVICES: "mbta wmata_bus wmata_rail septa_bus septa_rail cats_charlotte_nc ct_transit marta_bus pvta ripta toronto_ttc"
+  CENTRAL_SERVICES: "nashvillemta"
+  MOUNTAIN_SERVICES: "denver_rtd"
+  PACIFIC_SERVICES: "caltrain king_county_metro"
+
+jobs:
+  restart-eastern:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'eastern' || inputs.timezone == 'all'))
+
+    steps:
+      - name: Deploy Eastern timezone services (4 AM ET)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            echo "=== Deploying Eastern timezone services (4 AM ET) ==="
+
+            # Login to GitHub Container Registry
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+            # Pull and redeploy each service
+            for service in ${{ env.EASTERN_SERVICES }}; do
+              echo "Deploying $service..."
+              docker compose pull $service
+              docker compose up -d --no-deps $service
+              sleep 5
+            done
+
+            # Clean up old images
+            docker image prune -f
+            echo "=== Eastern services deployed ==="
+
+  restart-central:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 10 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'central' || inputs.timezone == 'all'))
+
+    steps:
+      - name: Deploy Central timezone services (4 AM CT)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            echo "=== Deploying Central timezone services (4 AM CT) ==="
+
+            # Login to GitHub Container Registry
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+            # Pull and redeploy each service
+            for service in ${{ env.CENTRAL_SERVICES }}; do
+              echo "Deploying $service..."
+              docker compose pull $service
+              docker compose up -d --no-deps $service
+              sleep 5
+            done
+
+            # Clean up old images
+            docker image prune -f
+            echo "=== Central services deployed ==="
+
+  restart-mountain:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 11 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'mountain' || inputs.timezone == 'all'))
+
+    steps:
+      - name: Deploy Mountain timezone services (4 AM MT)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            echo "=== Deploying Mountain timezone services (4 AM MT) ==="
+
+            # Login to GitHub Container Registry
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+            # Pull and redeploy each service
+            for service in ${{ env.MOUNTAIN_SERVICES }}; do
+              echo "Deploying $service..."
+              docker compose pull $service
+              docker compose up -d --no-deps $service
+              sleep 5
+            done
+
+            # Clean up old images
+            docker image prune -f
+            echo "=== Mountain services deployed ==="
+
+  restart-pacific:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 12 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'pacific' || inputs.timezone == 'all'))
+
+    steps:
+      - name: Deploy Pacific timezone services (4 AM PT)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            echo "=== Deploying Pacific timezone services (4 AM PT) ==="
+
+            # Login to GitHub Container Registry
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+            # Pull and redeploy each service
+            for service in ${{ env.PACIFIC_SERVICES }}; do
+              echo "Deploying $service..."
+              docker compose pull $service
+              docker compose up -d --no-deps $service
+              sleep 5
+            done
+
+            # Clean up old images
+            docker image prune -f
+            echo "=== Pacific services deployed ==="
