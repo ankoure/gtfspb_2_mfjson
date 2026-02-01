@@ -45,11 +45,6 @@ services:
     container_name: gtfspb-ct_transit
     env_file: envs/.env.ct_transit
 
-  cta:
-    <<: *common
-    container_name: gtfspb-cta
-    env_file: envs/.env.cta
-
   denver_rtd:
     <<: *common
     container_name: gtfspb-denver_rtd
@@ -69,11 +64,6 @@ services:
     <<: *common
     container_name: gtfspb-mbta
     env_file: envs/.env.mbta
-
-  mta:
-    <<: *common
-    container_name: gtfspb-mta
-    env_file: envs/.env.mta
 
   nashvillemta:
     <<: *common
