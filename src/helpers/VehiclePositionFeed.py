@@ -1,8 +1,15 @@
 from google.transit import gtfs_realtime_pb2
 from google.protobuf.message import DecodeError
 import requests
+import time
 from src.helpers.Entity import Entity
 from src.helpers.setup_logger import logger
+from src.helpers.datadog_instrumentation import (
+    trace_function,
+    get_statsd,
+    get_tracer,
+    Metrics,
+)
 import datetime
 
 # Constants
@@ -10,6 +17,9 @@ DEFAULT_TIMEOUT = 30
 ERROR_TIMEOUT = 300
 REQUEST_TIMEOUT = 10
 MAX_ENTITIES = 1000  # Memory safety limit
+
+statsd = get_statsd()
+tracer = get_tracer()
 
 
 class VehiclePositionFeed:
@@ -47,14 +57,23 @@ class VehiclePositionFeed:
             if len(oldest.updated_at) > 1:
                 oldest.save(self.file_path)
             self.entities.remove(oldest)
+
+            # Record memory culling metric
+            statsd.increment(Metrics.ENTITY_MEMORY_CULLED)
+
             logger.warning(
                 f"Entity memory limit exceeded. Removed {oldest.entity_id}. "
                 f"Current entities: {len(self.entities)}"
             )
 
+    @trace_function("feed.get_entities", resource="VehiclePositionFeed")
     def get_entities(self):
         feed = gtfs_realtime_pb2.FeedMessage()
         vehicles = []
+        start_time = time.time()
+
+        # Increment fetch count
+        statsd.increment(Metrics.FEED_FETCH_COUNT)
 
         try:
             # Build headers with User-Agent
@@ -71,48 +90,84 @@ class VehiclePositionFeed:
                 timeout=REQUEST_TIMEOUT,
             )
             response.raise_for_status()
+
+            # Record success and response time
+            duration_ms = (time.time() - start_time) * 1000
+            statsd.increment(Metrics.FEED_FETCH_SUCCESS)
+            statsd.histogram(Metrics.FEED_FETCH_DURATION, duration_ms)
+
+            # Add span tags for debugging
+            span = tracer.current_span()
+            if span:
+                span.set_tag("http.status_code", response.status_code)
+                span.set_tag("http.url", self.url)
+                span.set_tag("response.size_bytes", len(response.content))
+
             logger.debug(f"Feed request successful. Status: {response.status_code}")
 
             feed.ParseFromString(response.content)
             logger.debug("Successfully parsed protobuf feed")
         except DecodeError as e:
+            statsd.increment(Metrics.FEED_FETCH_FAILURE, tags=["error:decode_error"])
             logger.warning(f"Protobuf decode error for {self.url}: {e}")
         except requests.exceptions.Timeout:
+            statsd.increment(Metrics.FEED_FETCH_FAILURE, tags=["error:timeout"])
             logger.warning(
                 f"Request timeout for {self.url} (timeout={REQUEST_TIMEOUT}s)"
             )
         except requests.exceptions.TooManyRedirects:
+            statsd.increment(
+                Metrics.FEED_FETCH_FAILURE, tags=["error:too_many_redirects"]
+            )
             logger.warning(f"Too many redirects for {self.url}")
         except requests.exceptions.SSLError as e:
+            statsd.increment(Metrics.FEED_FETCH_FAILURE, tags=["error:ssl_error"])
             logger.warning(f"SSL error for {self.url}: {e}")
         except requests.exceptions.RequestException as e:
+            statsd.increment(
+                Metrics.FEED_FETCH_FAILURE, tags=["error:request_exception"]
+            )
             logger.error(f"Request failed for {self.url}: {e}")
             raise SystemExit(e)
         except Exception as e:
+            statsd.increment(Metrics.FEED_FETCH_FAILURE, tags=["error:unknown"])
             self.update_timeout(ERROR_TIMEOUT)
             logger.exception(f"Unexpected error fetching feed from {self.url}: {e}")
 
         # Extract vehicle entities from feed
         try:
             vehicles = [e for e in feed.entity if e.HasField("vehicle")]
+            statsd.histogram(Metrics.FEED_ENTITY_COUNT, len(vehicles))
             logger.debug(f"Extracted {len(vehicles)} vehicle entities from feed")
         except Exception as e:
             logger.error(f"Failed to extract vehicle entities: {e}")
 
         return vehicles
 
+    @trace_function("feed.consume", resource="VehiclePositionFeed")
     def consume_pb(self):
         # Check memory limits before processing
         self._check_memory_limit()
 
         feed_entities = self.get_entities()
 
+        # Record active entity gauge
+        statsd.gauge(Metrics.ENTITY_ACTIVE_COUNT, len(self.entities))
+
         if len(feed_entities) == 0:
             logger.warning(f"Empty feed for {self.url}")
+            statsd.increment(Metrics.FEED_EMPTY_COUNT)
             self.update_timeout(ERROR_TIMEOUT)
             return
 
         logger.debug(f"Processing {len(feed_entities)} feed entities")
+
+        # Track counts for metrics
+        created_count = 0
+        updated_count = 0
+        direction_changed_count = 0
+        saved_count = 0
+        discarded_count = 0
 
         if len(self.entities) == 0:
             # create all new objects
@@ -122,11 +177,10 @@ class VehiclePositionFeed:
             for feed_entity in feed_entities:
                 entity = Entity(feed_entity)
                 self.entities.append(entity)
+                created_count += 1
             logger.debug(f"Total entities after creation: {len(self.entities)}")
         else:
             current_ids = []
-            updated_count = 0
-            direction_changed_count = 0
 
             # find and update entity
             for feed_entity in feed_entities:
@@ -149,6 +203,7 @@ class VehiclePositionFeed:
                             direction_changed_count += 1
                             if len(entity.updated_at) > 1:
                                 entity.save(self.file_path)
+                                saved_count += 1
                                 logger.debug(
                                     f"Saved entity {entity.entity_id} (direction changed)"
                                 )
@@ -157,6 +212,7 @@ class VehiclePositionFeed:
                             entity = Entity(feed_entity)
                             self.entities.append(entity)
                             current_ids.append(feed_entity.id)
+                            created_count += 1
                     else:
                         current_ids.append(feed_entity.id)
                 else:
@@ -164,13 +220,11 @@ class VehiclePositionFeed:
                     entity = Entity(feed_entity)
                     self.entities.append(entity)
                     current_ids.append(feed_entity.id)
-                    updated_count += 1
+                    created_count += 1
 
             # remove and save finished entities
             old_ids = {e.entity_id for e in self.entities}
             ids_to_remove = old_ids - set(current_ids)
-            saved_count = 0
-            discarded_count = 0
 
             for id in ids_to_remove:
                 entity = self.find_entity(id)
@@ -187,8 +241,23 @@ class VehiclePositionFeed:
                         )
                     self.entities.remove(entity)
 
-            logger.debug(
-                f"Feed processing complete: {updated_count} updated, "
-                f"{direction_changed_count} direction changes, {saved_count} saved, "
-                f"{discarded_count} discarded"
-            )
+        # Submit batch metrics
+        if created_count > 0:
+            statsd.increment(Metrics.ENTITY_CREATED, created_count)
+        if updated_count > 0:
+            statsd.increment(Metrics.ENTITY_UPDATED, updated_count)
+        if direction_changed_count > 0:
+            statsd.increment(Metrics.ENTITY_DIRECTION_CHANGED, direction_changed_count)
+        if saved_count > 0:
+            statsd.increment(Metrics.ENTITY_SAVED, saved_count)
+        if discarded_count > 0:
+            statsd.increment(Metrics.ENTITY_DISCARDED, discarded_count)
+
+        # Update active count gauge
+        statsd.gauge(Metrics.ENTITY_ACTIVE_COUNT, len(self.entities))
+
+        logger.debug(
+            f"Feed processing complete: {updated_count} updated, "
+            f"{direction_changed_count} direction changes, {saved_count} saved, "
+            f"{discarded_count} discarded"
+        )
