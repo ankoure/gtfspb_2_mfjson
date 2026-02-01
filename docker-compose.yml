@@ -62,6 +62,7 @@ services:
     <<: *common
     container_name: gtfspb-caltrain
     env_file:
+      - .env
       - envs/.env.caltrain
     environment:
       - DD_TAGS=agency:caltrain
@@ -72,6 +73,7 @@ services:
     <<: *common
     container_name: gtfspb-cats_charlotte_nc
     env_file:
+      - .env
       - envs/.env.cats_charlotte_nc
     environment:
       - DD_TAGS=agency:cats_charlotte_nc
@@ -82,6 +84,7 @@ services:
     <<: *common
     container_name: gtfspb-ct_transit
     env_file:
+      - .env
       - envs/.env.ct_transit
     environment:
       - DD_TAGS=agency:ct_transit
@@ -92,6 +95,7 @@ services:
     <<: *common
     container_name: gtfspb-denver_rtd
     env_file:
+      - .env
       - envs/.env.denver_rtd
     environment:
       - DD_TAGS=agency:denver_rtd
@@ -102,6 +106,7 @@ services:
     <<: *common
     container_name: gtfspb-king_county_metro
     env_file:
+      - .env
       - envs/.env.king_county_metro
     environment:
       - DD_TAGS=agency:king_county_metro
@@ -112,6 +117,7 @@ services:
     <<: *common
     container_name: gtfspb-marta_bus
     env_file:
+      - .env
       - envs/.env.marta_bus
     environment:
       - DD_TAGS=agency:marta_bus
@@ -122,6 +128,7 @@ services:
     <<: *common
     container_name: gtfspb-mbta
     env_file:
+      - .env
       - envs/.env.mbta
     environment:
       - DD_TAGS=agency:mbta
@@ -132,6 +139,7 @@ services:
     <<: *common
     container_name: gtfspb-nashvillemta
     env_file:
+      - .env
       - envs/.env.nashvillemta
     environment:
       - DD_TAGS=agency:nashvillemta
@@ -142,6 +150,7 @@ services:
     <<: *common
     container_name: gtfspb-pvta
     env_file:
+      - .env
       - envs/.env.pvta
     environment:
       - DD_TAGS=agency:pvta
@@ -152,6 +161,7 @@ services:
     <<: *common
     container_name: gtfspb-ripta
     env_file:
+      - .env
       - envs/.env.ripta
     environment:
       - DD_TAGS=agency:ripta
@@ -162,6 +172,7 @@ services:
     <<: *common
     container_name: gtfspb-septa_bus
     env_file:
+      - .env
       - envs/.env.septa_bus
     environment:
       - DD_TAGS=agency:septa_bus
@@ -172,6 +183,7 @@ services:
     <<: *common
     container_name: gtfspb-septa_rail
     env_file:
+      - .env
       - envs/.env.septa_rail
     environment:
       - DD_TAGS=agency:septa_rail
@@ -182,6 +194,7 @@ services:
     <<: *common
     container_name: gtfspb-toronto_ttc
     env_file:
+      - .env
       - envs/.env.toronto_ttc
     environment:
       - DD_TAGS=agency:toronto_ttc
@@ -192,6 +205,7 @@ services:
     <<: *common
     container_name: gtfspb-wmata_bus
     env_file:
+      - .env
       - envs/.env.wmata_bus
     environment:
       - DD_TAGS=agency:wmata_bus
@@ -202,6 +216,7 @@ services:
     <<: *common
     container_name: gtfspb-wmata_rail
     env_file:
+      - .env
       - envs/.env.wmata_rail
     environment:
       - DD_TAGS=agency:wmata_rail
