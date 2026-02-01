@@ -1,9 +1,4 @@
-# Initialize DataDog instrumentation early (before other imports use requests/boto3)
 from src.helpers.datadog_instrumentation import get_tracer, get_statsd, Metrics
-
-tracer = get_tracer()
-statsd = get_statsd()
-
 import signal
 import threading
 import datetime
@@ -13,6 +8,8 @@ from src.helpers.VehiclePositionFeed import VehiclePositionFeed
 from src.helpers.setup_logger import logger
 from src.helpers.TrajectoryAggregator import aggregate_all
 
+tracer = get_tracer()
+statsd = get_statsd()
 
 _shutdown_event = threading.Event()
 

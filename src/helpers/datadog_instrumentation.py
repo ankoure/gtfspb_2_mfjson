@@ -26,12 +26,6 @@ initialize(
 # This patches: requests, boto3, threading, logging
 patch_all()
 
-# Configure tracer with service info
-tracer.configure(
-    hostname=os.getenv("DD_AGENT_HOST", "localhost"),
-    port=int(os.getenv("DD_TRACE_AGENT_PORT", 8126)),
-)
-
 
 class Metrics:
     """Namespace for custom metrics with consistent naming."""
