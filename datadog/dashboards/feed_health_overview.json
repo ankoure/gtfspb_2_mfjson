@@ -1,0 +1,355 @@
+{
+  "title": "GTFS Feed Health Overview",
+  "description": "Monitor GTFS feed fetch health, latency, and entity counts across all transit agencies",
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "title": "Feed Fetch Success Rate",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "(query1 / (query1 + query2)) * 100"
+              }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.success{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.failure{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 1,
+        "custom_unit": "%"
+      },
+      "layout": { "x": 0, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "title": "Total Fetches",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.count{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 3, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "title": "Empty Feeds",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.empty.count{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 6, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "title": "Active Entities",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.active.gauge{$agency,$env}",
+                "aggregator": "last"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 9, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "title": "Fetch Success/Failure Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "alias": "Success" },
+              { "formula": "query2", "alias": "Failure" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.success{$agency,$env}.as_count()"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.failure{$agency,$env}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "semantic"
+            },
+            "display_type": "bars"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 2, "width": 6, "height": 3 }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "title": "Fetch Latency (ms)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "alias": "p50" },
+              { "formula": "query2", "alias": "p95" },
+              { "formula": "query3", "alias": "p99" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "p50:gtfspb.feed.fetch.duration{$agency,$env}"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "p95:gtfspb.feed.fetch.duration{$agency,$env}"
+              },
+              {
+                "name": "query3",
+                "data_source": "metrics",
+                "query": "p99:gtfspb.feed.fetch.duration{$agency,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 2, "width": 6, "height": 3 }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "title": "Fetch Success Rate by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "(query1 / (query1 + query2)) * 100" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.success{$agency,$env} by {agency}.as_count()"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.failure{$agency,$env} by {agency}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 5, "width": 12, "height": 3 }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "title": "Entity Count per Fetch",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.entity.count{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 8, "width": 6, "height": 3 }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "title": "Empty Feeds by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.empty.count{$agency,$env} by {agency}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm"
+            },
+            "display_type": "bars"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 8, "width": 6, "height": 3 }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "title": "Failure Types",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 10, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.feed.fetch.failure{$agency,$env} by {error}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 11, "width": 6, "height": 3 }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "title": "Fetch Latency by Agency (p95)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "p95:gtfspb.feed.fetch.duration{$agency,$env} by {agency}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 11, "width": 6, "height": 3 }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "agency",
+      "prefix": "agency",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "*"
+    }
+  ],
+  "layout_type": "ordered",
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

@@ -1,0 +1,370 @@
+{
+  "title": "GTFS Entity Lifecycle",
+  "description": "Monitor vehicle entity creation, updates, saves, and memory management",
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "title": "Active Entities",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.active.gauge{$agency,$env}",
+                "aggregator": "last"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 0, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "title": "Entities Created",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.created{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 3, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "title": "Entities Saved",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.saved{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 6, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "title": "Memory Culled",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.memory_culled{$agency,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 9, "y": 0, "width": 3, "height": 2 }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "title": "Active Entities Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.active.gauge{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 2, "width": 12, "height": 3 }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "title": "Entity Created/Updated/Saved",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "alias": "Created" },
+              { "formula": "query2", "alias": "Updated" },
+              { "formula": "query3", "alias": "Saved" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.created{$agency,$env}.as_count()"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.updated{$agency,$env}.as_count()"
+              },
+              {
+                "name": "query3",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.saved{$agency,$env}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool"
+            },
+            "display_type": "bars"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 5, "width": 6, "height": 3 }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "title": "Entity Discarded & Memory Culled",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "alias": "Discarded" },
+              { "formula": "query2", "alias": "Memory Culled" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.discarded{$agency,$env}.as_count()"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.memory_culled{$agency,$env}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm"
+            },
+            "display_type": "bars"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 5, "width": 6, "height": 3 }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "title": "Direction Changes Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.direction_changed{$agency,$env} by {agency}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "purple"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 8, "width": 12, "height": 3 }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "title": "Entities Created by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.created{$agency,$env} by {agency}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 11, "width": 4, "height": 4 }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "title": "Entities Saved by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.saved{$agency,$env} by {agency}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 4, "y": 11, "width": 4, "height": 4 }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "title": "Memory Culled by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.entity.memory_culled{$agency,$env} by {agency}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 8, "y": 11, "width": 4, "height": 4 }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "title": "Service Startup Events",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "alias": "Startup" },
+              { "formula": "query2", "alias": "Startup Failure" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.service.startup{$agency,$env}.as_count()"
+              },
+              {
+                "name": "query2",
+                "data_source": "metrics",
+                "query": "sum:gtfspb.service.startup.failure{$agency,$env}.as_count()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "semantic"
+            },
+            "display_type": "bars"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 15, "width": 12, "height": 3 }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "agency",
+      "prefix": "agency",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "*"
+    }
+  ],
+  "layout_type": "ordered",
+  "notify_list": [],
+  "reflow_type": "fixed"
+}
