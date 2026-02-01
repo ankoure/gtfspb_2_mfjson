@@ -71,6 +71,20 @@ class Metrics:
     SERVICE_STARTUP = f"{PREFIX}.service.startup"
     SERVICE_STARTUP_FAILURE = f"{PREFIX}.service.startup.failure"
 
+    # Data quality metrics (percentages 0-100)
+    QUALITY_HAS_BEARING = f"{PREFIX}.feed.quality.has_bearing"
+    QUALITY_HAS_SPEED = f"{PREFIX}.feed.quality.has_speed"
+    QUALITY_HAS_COORDINATES = f"{PREFIX}.feed.quality.has_coordinates"
+    QUALITY_HAS_TRIP_ID = f"{PREFIX}.feed.quality.has_trip_id"
+    QUALITY_HAS_ROUTE_ID = f"{PREFIX}.feed.quality.has_route_id"
+    QUALITY_HAS_VEHICLE_ID = f"{PREFIX}.feed.quality.has_vehicle_id"
+    QUALITY_HAS_STOP_ID = f"{PREFIX}.feed.quality.has_stop_id"
+    QUALITY_HAS_OCCUPANCY = f"{PREFIX}.feed.quality.has_occupancy"
+    QUALITY_HAS_OCCUPANCY_PCT = f"{PREFIX}.feed.quality.has_occupancy_percentage"
+    QUALITY_HAS_CONGESTION = f"{PREFIX}.feed.quality.has_congestion"
+    QUALITY_HAS_MULTI_CARRIAGE = f"{PREFIX}.feed.quality.has_multi_carriage"
+    QUALITY_HAS_SCHEDULE_REL = f"{PREFIX}.feed.quality.has_schedule_relationship"
+
 
 def trace_function(operation_name: str = None, resource: str = None):
     """

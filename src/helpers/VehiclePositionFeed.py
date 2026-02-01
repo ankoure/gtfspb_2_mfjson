@@ -66,6 +66,93 @@ class VehiclePositionFeed:
                 f"Current entities: {len(self.entities)}"
             )
 
+    def _report_quality_metrics(self, vehicles):
+        """Calculate and report data quality metrics for the feed."""
+        total = len(vehicles)
+        if total == 0:
+            return
+
+        # Count vehicles with each attribute populated
+        has_bearing = 0
+        has_speed = 0
+        has_coordinates = 0
+        has_trip_id = 0
+        has_route_id = 0
+        has_vehicle_id = 0
+        has_stop_id = 0
+        has_occupancy = 0
+        has_occupancy_pct = 0
+        has_congestion = 0
+        has_multi_carriage = 0
+        has_schedule_rel = 0
+
+        for entity in vehicles:
+            v = entity.vehicle
+            pos = v.position
+
+            # Position attributes (check for non-zero/non-default values)
+            if pos.bearing != 0:
+                has_bearing += 1
+            if pos.speed != 0:
+                has_speed += 1
+            # Valid coordinates (not 0,0 which is default/missing)
+            if pos.latitude != 0 or pos.longitude != 0:
+                has_coordinates += 1
+
+            # Trip info
+            if v.trip.trip_id:
+                has_trip_id += 1
+            if v.trip.route_id:
+                has_route_id += 1
+            # schedule_relationship: 0=SCHEDULED, so check if explicitly set
+            if v.trip.schedule_relationship != 0:
+                has_schedule_rel += 1
+
+            # Vehicle info
+            if v.vehicle.id:
+                has_vehicle_id += 1
+
+            # Stop info
+            if v.stop_id:
+                has_stop_id += 1
+
+            # Occupancy (0=EMPTY which is valid, but also default; >0 means data present)
+            if v.occupancy_status != 0:
+                has_occupancy += 1
+            if v.occupancy_percentage > 0:
+                has_occupancy_pct += 1
+
+            # Congestion (0=UNKNOWN_CONGESTION_LEVEL which is default)
+            if v.congestion_level != 0:
+                has_congestion += 1
+
+            # Multi-carriage
+            if len(v.multi_carriage_details) > 0:
+                has_multi_carriage += 1
+
+        # Report as percentages (0-100)
+        def pct(count):
+            return (count / total) * 100
+
+        statsd.gauge(Metrics.QUALITY_HAS_BEARING, pct(has_bearing))
+        statsd.gauge(Metrics.QUALITY_HAS_SPEED, pct(has_speed))
+        statsd.gauge(Metrics.QUALITY_HAS_COORDINATES, pct(has_coordinates))
+        statsd.gauge(Metrics.QUALITY_HAS_TRIP_ID, pct(has_trip_id))
+        statsd.gauge(Metrics.QUALITY_HAS_ROUTE_ID, pct(has_route_id))
+        statsd.gauge(Metrics.QUALITY_HAS_VEHICLE_ID, pct(has_vehicle_id))
+        statsd.gauge(Metrics.QUALITY_HAS_STOP_ID, pct(has_stop_id))
+        statsd.gauge(Metrics.QUALITY_HAS_OCCUPANCY, pct(has_occupancy))
+        statsd.gauge(Metrics.QUALITY_HAS_OCCUPANCY_PCT, pct(has_occupancy_pct))
+        statsd.gauge(Metrics.QUALITY_HAS_CONGESTION, pct(has_congestion))
+        statsd.gauge(Metrics.QUALITY_HAS_MULTI_CARRIAGE, pct(has_multi_carriage))
+        statsd.gauge(Metrics.QUALITY_HAS_SCHEDULE_REL, pct(has_schedule_rel))
+
+        logger.debug(
+            f"Feed quality: coordinates={pct(has_coordinates):.1f}%, "
+            f"bearing={pct(has_bearing):.1f}%, speed={pct(has_speed):.1f}%, "
+            f"trip_id={pct(has_trip_id):.1f}%, occupancy={pct(has_occupancy):.1f}%"
+        )
+
     @trace_function("feed.get_entities", resource="VehiclePositionFeed")
     def get_entities(self):
         feed = gtfs_realtime_pb2.FeedMessage()
@@ -139,6 +226,10 @@ class VehiclePositionFeed:
             vehicles = [e for e in feed.entity if e.HasField("vehicle")]
             statsd.histogram(Metrics.FEED_ENTITY_COUNT, len(vehicles))
             logger.debug(f"Extracted {len(vehicles)} vehicle entities from feed")
+
+            # Calculate and report data quality metrics
+            if vehicles:
+                self._report_quality_metrics(vehicles)
         except Exception as e:
             logger.error(f"Failed to extract vehicle entities: {e}")
 
