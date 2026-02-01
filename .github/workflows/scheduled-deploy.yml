@@ -2,7 +2,7 @@ name: Scheduled Deploy
 
 on:
   schedule:
-    # Each timezone restarts at their local 4 AM
+    # Each timezone deploys at their local 4 AM
     - cron: '0 9 * * *'   # 4 AM Eastern (UTC-5)
     - cron: '0 10 * * *'  # 4 AM Central (UTC-6)
     - cron: '0 11 * * *'  # 4 AM Mountain (UTC-7)
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       timezone:
-        description: 'Which timezone group to restart'
+        description: 'Which timezone group to deploy'
         required: true
         default: 'all'
         type: choice
@@ -22,136 +22,113 @@ on:
           - pacific
 
 env:
+  AWS_REGION: us-east-1  # Change to your EC2 region
   EASTERN_SERVICES: "mbta wmata_bus wmata_rail septa_bus septa_rail cats_charlotte_nc ct_transit marta_bus pvta ripta toronto_ttc"
   CENTRAL_SERVICES: "nashvillemta"
   MOUNTAIN_SERVICES: "denver_rtd"
   PACIFIC_SERVICES: "caltrain king_county_metro"
 
 jobs:
-  restart-eastern:
+  deploy-eastern:
     runs-on: ubuntu-latest
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * *') ||
       (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'eastern' || inputs.timezone == 'all'))
 
     steps:
-      - name: Deploy Eastern timezone services (4 AM ET)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "=== Deploying Eastern timezone services (4 AM ET) ==="
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            # Login to GitHub Container Registry
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      - name: Deploy Eastern timezone services (4 AM ET)
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd ${{ secrets.EC2_DEPLOY_PATH }}",
+                            "for service in ${{ env.EASTERN_SERVICES }}; do echo Deploying $service...; docker compose pull $service; docker compose up -d --no-deps $service; sleep 5; done",
+              "docker image prune -f"
+            ]' \
+            --output text
 
-            # Pull and redeploy each service
-            for service in ${{ env.EASTERN_SERVICES }}; do
-              echo "Deploying $service..."
-              docker compose pull $service
-              docker compose up -d --no-deps $service
-              sleep 5
-            done
-
-            # Clean up old images
-            docker image prune -f
-            echo "=== Eastern services deployed ==="
-
-  restart-central:
+  deploy-central:
     runs-on: ubuntu-latest
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 10 * * *') ||
       (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'central' || inputs.timezone == 'all'))
 
     steps:
-      - name: Deploy Central timezone services (4 AM CT)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "=== Deploying Central timezone services (4 AM CT) ==="
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            # Login to GitHub Container Registry
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      - name: Deploy Central timezone services (4 AM CT)
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd ${{ secrets.EC2_DEPLOY_PATH }}",
+                            "for service in ${{ env.CENTRAL_SERVICES }}; do echo Deploying $service...; docker compose pull $service; docker compose up -d --no-deps $service; sleep 5; done",
+              "docker image prune -f"
+            ]' \
+            --output text
 
-            # Pull and redeploy each service
-            for service in ${{ env.CENTRAL_SERVICES }}; do
-              echo "Deploying $service..."
-              docker compose pull $service
-              docker compose up -d --no-deps $service
-              sleep 5
-            done
-
-            # Clean up old images
-            docker image prune -f
-            echo "=== Central services deployed ==="
-
-  restart-mountain:
+  deploy-mountain:
     runs-on: ubuntu-latest
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 11 * * *') ||
       (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'mountain' || inputs.timezone == 'all'))
 
     steps:
-      - name: Deploy Mountain timezone services (4 AM MT)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "=== Deploying Mountain timezone services (4 AM MT) ==="
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            # Login to GitHub Container Registry
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      - name: Deploy Mountain timezone services (4 AM MT)
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd ${{ secrets.EC2_DEPLOY_PATH }}",
+                            "for service in ${{ env.MOUNTAIN_SERVICES }}; do echo Deploying $service...; docker compose pull $service; docker compose up -d --no-deps $service; sleep 5; done",
+              "docker image prune -f"
+            ]' \
+            --output text
 
-            # Pull and redeploy each service
-            for service in ${{ env.MOUNTAIN_SERVICES }}; do
-              echo "Deploying $service..."
-              docker compose pull $service
-              docker compose up -d --no-deps $service
-              sleep 5
-            done
-
-            # Clean up old images
-            docker image prune -f
-            echo "=== Mountain services deployed ==="
-
-  restart-pacific:
+  deploy-pacific:
     runs-on: ubuntu-latest
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 12 * * *') ||
       (github.event_name == 'workflow_dispatch' && (inputs.timezone == 'pacific' || inputs.timezone == 'all'))
 
     steps:
-      - name: Deploy Pacific timezone services (4 AM PT)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ${{ secrets.EC2_DEPLOY_PATH }}
-            echo "=== Deploying Pacific timezone services (4 AM PT) ==="
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            # Login to GitHub Container Registry
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
-
-            # Pull and redeploy each service
-            for service in ${{ env.PACIFIC_SERVICES }}; do
-              echo "Deploying $service..."
-              docker compose pull $service
-              docker compose up -d --no-deps $service
-              sleep 5
-            done
-
-            # Clean up old images
-            docker image prune -f
-            echo "=== Pacific services deployed ==="
+      - name: Deploy Pacific timezone services (4 AM PT)
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd ${{ secrets.EC2_DEPLOY_PATH }}",
+                            "for service in ${{ env.PACIFIC_SERVICES }}; do echo Deploying $service...; docker compose pull $service; docker compose up -d --no-deps $service; sleep 5; done",
+              "docker image prune -f"
+            ]' \
+            --output text
