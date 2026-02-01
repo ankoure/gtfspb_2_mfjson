@@ -1,0 +1,484 @@
+{
+  "title": "GTFS Data Quality Scorecard",
+  "description": "Track GTFS feed data completeness and quality metrics across all transit agencies",
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "title": "Data Quality Overview",
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "id": 101,
+            "definition": {
+              "title": "Avg Coordinate Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_coordinates{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 0, "y": 0, "width": 2, "height": 2 }
+          },
+          {
+            "id": 102,
+            "definition": {
+              "title": "Avg Vehicle ID Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_vehicle_id{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 2, "y": 0, "width": 2, "height": 2 }
+          },
+          {
+            "id": 103,
+            "definition": {
+              "title": "Avg Trip ID Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_trip_id{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 4, "y": 0, "width": 2, "height": 2 }
+          },
+          {
+            "id": 104,
+            "definition": {
+              "title": "Avg Bearing Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_bearing{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 6, "y": 0, "width": 2, "height": 2 }
+          },
+          {
+            "id": 105,
+            "definition": {
+              "title": "Avg Speed Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_speed{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 8, "y": 0, "width": 2, "height": 2 }
+          },
+          {
+            "id": 106,
+            "definition": {
+              "title": "Avg Occupancy Coverage",
+              "title_size": "16",
+              "title_align": "left",
+              "type": "query_value",
+              "requests": [
+                {
+                  "queries": [
+                    {
+                      "name": "query1",
+                      "data_source": "metrics",
+                      "query": "avg:gtfspb.feed.quality.has_occupancy{$agency,$env}",
+                      "aggregator": "avg"
+                    }
+                  ],
+                  "response_format": "scalar"
+                }
+              ],
+              "autoscale": false,
+              "precision": 1,
+              "custom_unit": "%"
+            },
+            "layout": { "x": 10, "y": 0, "width": 2, "height": 2 }
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 3 }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "title": "Coordinate Coverage by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "heatmap",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_coordinates{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "green"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 3, "width": 6, "height": 3 }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "title": "Bearing Coverage by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "heatmap",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_bearing{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "blue"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 3, "width": 6, "height": 3 }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "title": "Speed Coverage by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "heatmap",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_speed{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "purple"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 6, "width": 6, "height": 3 }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "title": "Trip ID Coverage by Agency",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "heatmap",
+        "requests": [
+          {
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_trip_id{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "orange"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 6, "width": 6, "height": 3 }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "title": "Quality Metrics Ranking - Coordinates",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_coordinates{$agency,$env} by {agency}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 9, "width": 4, "height": 4 }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "title": "Quality Metrics Ranking - Bearing",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_bearing{$agency,$env} by {agency}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 4, "y": 9, "width": 4, "height": 4 }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "title": "Quality Metrics Ranking - Speed",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1", "limit": { "count": 15, "order": "desc" } }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_speed{$agency,$env} by {agency}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ]
+      },
+      "layout": { "x": 8, "y": 9, "width": 4, "height": 4 }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "title": "Occupancy Data Coverage Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_occupancy{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 13, "width": 6, "height": 3 }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "title": "Route ID Coverage Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_route_id{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 13, "width": 6, "height": 3 }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "title": "Schedule Relationship Coverage",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_schedule_relationship{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 16, "width": 6, "height": 3 }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "title": "Multi-Carriage Data Coverage",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              { "formula": "query1" }
+            ],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "avg:gtfspb.feed.quality.has_multi_carriage{$agency,$env} by {agency}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 16, "width": 6, "height": 3 }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "agency",
+      "prefix": "agency",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "*"
+    }
+  ],
+  "layout_type": "ordered",
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

@@ -7,15 +7,23 @@ Supports optional segment matching with GTFS data and S3 uploads.
 
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Optional
 from collections import defaultdict
 
 from src.helpers.s3Uploader import upload_file
+from src.helpers.datadog_instrumentation import (
+    trace_function,
+    get_statsd,
+    Metrics,
+)
 
 logger = logging.getLogger(__name__)
+statsd = get_statsd()
 
 
+@trace_function("aggregation.load_mfjson", resource="TrajectoryAggregator")
 def load_mfjson(file_path: Path) -> dict:
     """Load and parse MFJSON file."""
     try:
@@ -40,6 +48,7 @@ def aggregate_trajectories(features: list[dict]) -> dict:
     return {"type": "FeatureCollection", "features": features}
 
 
+@trace_function("aggregation.aggregate_day", resource="TrajectoryAggregator")
 def aggregate_day(
     data_dir: Path,
     agency: str,
@@ -110,6 +119,13 @@ def aggregate_day(
         )
         return None, []
 
+    # Record trajectory count metric
+    statsd.histogram(
+        Metrics.AGGREGATION_TRAJECTORIES,
+        len(all_features),
+        tags=[f"route:{route_id}"],
+    )
+
     logger.info(
         f"  Aggregated {len(all_features)} trajectories for "
         f"{agency}/{route_id}/{year}-{month:02d}-{day:02d}"
@@ -118,6 +134,7 @@ def aggregate_day(
     return aggregate_trajectories(all_features), mfjson_files
 
 
+@trace_function("aggregation.save", resource="TrajectoryAggregator")
 def save_aggregated(
     aggregated_data: dict,
     output_dir: Path,
@@ -221,6 +238,7 @@ def find_date_ranges(
     return date_ranges
 
 
+@trace_function("aggregation.full", resource="TrajectoryAggregator")
 def aggregate_all(
     data_dir: Path = Path("./data"),
     agency: Optional[str] = None,
@@ -249,6 +267,8 @@ def aggregate_all(
     Returns:
         Tuple of (total_aggregated, total_failed)
     """
+    start_time = time.time()
+
     logger.info("Starting trajectory aggregation")
     logger.info(f"Data directory: {data_dir.absolute()}")
 
@@ -353,6 +373,16 @@ def aggregate_all(
                     logger.debug(f"    No data to aggregate for {y}-{m:02d}-{d:02d}")
 
         logger.info("")
+
+    # Record aggregation metrics
+    duration_ms = (time.time() - start_time) * 1000
+    statsd.histogram(Metrics.AGGREGATION_DURATION, duration_ms)
+    statsd.increment(Metrics.AGGREGATION_SUCCESS, total_aggregated)
+    if total_failed > 0:
+        statsd.increment(Metrics.AGGREGATION_FAILURE, total_failed)
+    statsd.histogram(
+        Metrics.AGGREGATION_FILES_PROCESSED, total_aggregated + total_failed
+    )
 
     logger.info("Aggregation complete")
     logger.info(f"Total files created: {total_aggregated}")

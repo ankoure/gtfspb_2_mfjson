@@ -6,6 +6,8 @@ x-common: &common
     - gtfs_data:/app/data
     - gtfs_logs:/app/logs
   restart: unless-stopped
+  depends_on:
+    - datadog-agent
   deploy:
     resources:
       limits:
@@ -28,90 +30,183 @@ x-common: &common
   stop_grace_period: 30s
 
 services:
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: datadog-agent
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE:-datadoghq.com}
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE=name:datadog-agent
+      - DD_AC_EXCLUDE=name:datadog-agent
+      - DD_PROCESS_AGENT_ENABLED=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    ports:
+      - "8126:8126"
+      - "8125:8125/udp"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
   caltrain:
     <<: *common
     container_name: gtfspb-caltrain
-    env_file: envs/.env.caltrain
+    env_file:
+      - envs/.env.caltrain
+    environment:
+      - DD_TAGS=agency:caltrain
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-caltrain"}]'
 
   cats_charlotte_nc:
     <<: *common
     container_name: gtfspb-cats_charlotte_nc
-    env_file: envs/.env.cats_charlotte_nc
+    env_file:
+      - envs/.env.cats_charlotte_nc
+    environment:
+      - DD_TAGS=agency:cats_charlotte_nc
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-cats_charlotte_nc"}]'
 
   ct_transit:
     <<: *common
     container_name: gtfspb-ct_transit
-    env_file: envs/.env.ct_transit
-
-  cta:
-    <<: *common
-    container_name: gtfspb-cta
-    env_file: envs/.env.cta
+    env_file:
+      - envs/.env.ct_transit
+    environment:
+      - DD_TAGS=agency:ct_transit
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-ct_transit"}]'
 
   denver_rtd:
     <<: *common
     container_name: gtfspb-denver_rtd
-    env_file: envs/.env.denver_rtd
+    env_file:
+      - envs/.env.denver_rtd
+    environment:
+      - DD_TAGS=agency:denver_rtd
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-denver_rtd"}]'
 
   king_county_metro:
     <<: *common
     container_name: gtfspb-king_county_metro
-    env_file: envs/.env.king_county_metro
+    env_file:
+      - envs/.env.king_county_metro
+    environment:
+      - DD_TAGS=agency:king_county_metro
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-king_county_metro"}]'
 
   marta_bus:
     <<: *common
     container_name: gtfspb-marta_bus
-    env_file: envs/.env.marta_bus
+    env_file:
+      - envs/.env.marta_bus
+    environment:
+      - DD_TAGS=agency:marta_bus
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-marta_bus"}]'
 
   mbta:
     <<: *common
     container_name: gtfspb-mbta
-    env_file: envs/.env.mbta
-
-  mta:
-    <<: *common
-    container_name: gtfspb-mta
-    env_file: envs/.env.mta
+    env_file:
+      - envs/.env.mbta
+    environment:
+      - DD_TAGS=agency:mbta
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-mbta"}]'
 
   nashvillemta:
     <<: *common
     container_name: gtfspb-nashvillemta
-    env_file: envs/.env.nashvillemta
+    env_file:
+      - envs/.env.nashvillemta
+    environment:
+      - DD_TAGS=agency:nashvillemta
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-nashvillemta"}]'
 
   pvta:
     <<: *common
     container_name: gtfspb-pvta
-    env_file: envs/.env.pvta
+    env_file:
+      - envs/.env.pvta
+    environment:
+      - DD_TAGS=agency:pvta
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-pvta"}]'
 
   ripta:
     <<: *common
     container_name: gtfspb-ripta
-    env_file: envs/.env.ripta
+    env_file:
+      - envs/.env.ripta
+    environment:
+      - DD_TAGS=agency:ripta
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-ripta"}]'
 
   septa_bus:
     <<: *common
     container_name: gtfspb-septa_bus
-    env_file: envs/.env.septa_bus
+    env_file:
+      - envs/.env.septa_bus
+    environment:
+      - DD_TAGS=agency:septa_bus
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-septa_bus"}]'
 
   septa_rail:
     <<: *common
     container_name: gtfspb-septa_rail
-    env_file: envs/.env.septa_rail
+    env_file:
+      - envs/.env.septa_rail
+    environment:
+      - DD_TAGS=agency:septa_rail
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-septa_rail"}]'
 
   toronto_ttc:
     <<: *common
     container_name: gtfspb-toronto_ttc
-    env_file: envs/.env.toronto_ttc
+    env_file:
+      - envs/.env.toronto_ttc
+    environment:
+      - DD_TAGS=agency:toronto_ttc
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-toronto_ttc"}]'
 
   wmata_bus:
     <<: *common
     container_name: gtfspb-wmata_bus
-    env_file: envs/.env.wmata_bus
+    env_file:
+      - envs/.env.wmata_bus
+    environment:
+      - DD_TAGS=agency:wmata_bus
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-wmata_bus"}]'
 
   wmata_rail:
     <<: *common
     container_name: gtfspb-wmata_rail
-    env_file: envs/.env.wmata_rail
+    env_file:
+      - envs/.env.wmata_rail
+    environment:
+      - DD_TAGS=agency:wmata_rail
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "gtfspb-wmata_rail"}]'
 
 networks:
   default:
