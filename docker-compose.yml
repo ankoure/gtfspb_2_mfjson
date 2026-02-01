@@ -2,16 +2,6 @@ x-common: &common
   image: ghcr.io/ankoure/gtfspb_2_mfjson:latest
   environment:
     - LOG_LEVEL=INFO
-    # DataDog configuration
-    - DD_AGENT_HOST=datadog-agent
-    - DD_TRACE_AGENT_PORT=8126
-    - DD_DOGSTATSD_PORT=8125
-    - DD_SERVICE=gtfspb-2-mfjson
-    - DD_ENV=${DD_ENV:-production}
-    - DD_VERSION=${DD_VERSION:-0.1.0}
-    - DD_TRACE_ENABLED=true
-    - DD_LOGS_INJECTION=true
-    - DD_TRACE_SAMPLE_RATE=1.0
   volumes:
     - gtfs_data:/app/data
     - gtfs_logs:/app/logs
@@ -71,7 +61,8 @@ services:
   caltrain:
     <<: *common
     container_name: gtfspb-caltrain
-    env_file: envs/.env.caltrain
+    env_file:
+      - envs/.env.caltrain
     environment:
       - DD_TAGS=agency:caltrain
     labels:
@@ -80,7 +71,8 @@ services:
   cats_charlotte_nc:
     <<: *common
     container_name: gtfspb-cats_charlotte_nc
-    env_file: envs/.env.cats_charlotte_nc
+    env_file:
+      - envs/.env.cats_charlotte_nc
     environment:
       - DD_TAGS=agency:cats_charlotte_nc
     labels:
@@ -89,7 +81,8 @@ services:
   ct_transit:
     <<: *common
     container_name: gtfspb-ct_transit
-    env_file: envs/.env.ct_transit
+    env_file:
+      - envs/.env.ct_transit
     environment:
       - DD_TAGS=agency:ct_transit
     labels:
@@ -98,7 +91,8 @@ services:
   denver_rtd:
     <<: *common
     container_name: gtfspb-denver_rtd
-    env_file: envs/.env.denver_rtd
+    env_file:
+      - envs/.env.denver_rtd
     environment:
       - DD_TAGS=agency:denver_rtd
     labels:
@@ -107,7 +101,8 @@ services:
   king_county_metro:
     <<: *common
     container_name: gtfspb-king_county_metro
-    env_file: envs/.env.king_county_metro
+    env_file:
+      - envs/.env.king_county_metro
     environment:
       - DD_TAGS=agency:king_county_metro
     labels:
@@ -116,7 +111,8 @@ services:
   marta_bus:
     <<: *common
     container_name: gtfspb-marta_bus
-    env_file: envs/.env.marta_bus
+    env_file:
+      - envs/.env.marta_bus
     environment:
       - DD_TAGS=agency:marta_bus
     labels:
@@ -125,7 +121,8 @@ services:
   mbta:
     <<: *common
     container_name: gtfspb-mbta
-    env_file: envs/.env.mbta
+    env_file:
+      - envs/.env.mbta
     environment:
       - DD_TAGS=agency:mbta
     labels:
@@ -134,7 +131,8 @@ services:
   nashvillemta:
     <<: *common
     container_name: gtfspb-nashvillemta
-    env_file: envs/.env.nashvillemta
+    env_file:
+      - envs/.env.nashvillemta
     environment:
       - DD_TAGS=agency:nashvillemta
     labels:
@@ -143,7 +141,8 @@ services:
   pvta:
     <<: *common
     container_name: gtfspb-pvta
-    env_file: envs/.env.pvta
+    env_file:
+      - envs/.env.pvta
     environment:
       - DD_TAGS=agency:pvta
     labels:
@@ -152,7 +151,8 @@ services:
   ripta:
     <<: *common
     container_name: gtfspb-ripta
-    env_file: envs/.env.ripta
+    env_file:
+      - envs/.env.ripta
     environment:
       - DD_TAGS=agency:ripta
     labels:
@@ -161,7 +161,8 @@ services:
   septa_bus:
     <<: *common
     container_name: gtfspb-septa_bus
-    env_file: envs/.env.septa_bus
+    env_file:
+      - envs/.env.septa_bus
     environment:
       - DD_TAGS=agency:septa_bus
     labels:
@@ -170,7 +171,8 @@ services:
   septa_rail:
     <<: *common
     container_name: gtfspb-septa_rail
-    env_file: envs/.env.septa_rail
+    env_file:
+      - envs/.env.septa_rail
     environment:
       - DD_TAGS=agency:septa_rail
     labels:
@@ -179,7 +181,8 @@ services:
   toronto_ttc:
     <<: *common
     container_name: gtfspb-toronto_ttc
-    env_file: envs/.env.toronto_ttc
+    env_file:
+      - envs/.env.toronto_ttc
     environment:
       - DD_TAGS=agency:toronto_ttc
     labels:
@@ -188,7 +191,8 @@ services:
   wmata_bus:
     <<: *common
     container_name: gtfspb-wmata_bus
-    env_file: envs/.env.wmata_bus
+    env_file:
+      - envs/.env.wmata_bus
     environment:
       - DD_TAGS=agency:wmata_bus
     labels:
@@ -197,7 +201,8 @@ services:
   wmata_rail:
     <<: *common
     container_name: gtfspb-wmata_rail
-    env_file: envs/.env.wmata_rail
+    env_file:
+      - envs/.env.wmata_rail
     environment:
       - DD_TAGS=agency:wmata_rail
     labels:
